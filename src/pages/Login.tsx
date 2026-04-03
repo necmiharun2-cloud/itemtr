@@ -31,6 +31,14 @@ const Login = () => {
       return;
     }
 
+    if (email.includes("@")) {
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (!emailRegex.test(email)) {
+        toast.error("Lütfen geçerli bir e-posta adresi girin.");
+        return;
+      }
+    }
+
     setLoading(true);
 
     try {
@@ -73,6 +81,7 @@ const Login = () => {
                   <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                   <Input
                     type="text"
+                    required
                     placeholder="ornek@email.com"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
@@ -90,6 +99,7 @@ const Login = () => {
                   <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                   <Input
                     type={showPassword ? "text" : "password"}
+                    required
                     placeholder="••••••••"
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}

@@ -217,6 +217,11 @@ const Dashboard = () => {
         getUserBalance(current.id),
       ]);
 
+      setUserProfile(prev => ({
+        ...prev,
+        balance: balance ?? prev.balance,
+      }));
+
       // Wallet transactions formatla
       const formattedTxns = transactions.map((txn: any) => ({
         id: txn.id?.slice(0, 8).toUpperCase() || 'TXN' + Math.random().toString(36).substr(2, 6).toUpperCase(),

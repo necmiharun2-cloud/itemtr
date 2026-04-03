@@ -17,7 +17,7 @@ const isValidEmail = (email: string): boolean => {
 
 // Username validation - alphanumeric only
 const isValidUsername = (username: string): boolean => {
-  const usernameRegex = /^[a-zA-Z0-9_]{3,20}$/;
+  const usernameRegex = /^[a-zA-Z0-9]{3,20}$/;
   return usernameRegex.test(username);
 };
 
@@ -36,7 +36,7 @@ const Register = () => {
       case "username":
         if (!value.trim()) return "Kullanıcı adı zorunlu";
         if (value.length < 3) return "En az 3 karakter olmalı";
-        if (!isValidUsername(value)) return "Sadece harf, rakam ve alt çizgi kullanabilirsiniz";
+        if (!isValidUsername(value)) return "Sadece harf ve rakam kullanabilirsiniz, özel karakterler yasaktır";
         return "";
       case "email":
         if (!value.trim()) return "E-posta zorunlu";
