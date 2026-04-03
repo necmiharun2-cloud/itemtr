@@ -61,7 +61,7 @@ const Index = () => {
       <NavMenu />
       <StoryCategories />
 
-      <section className="relative overflow-hidden bg-background pt-16 pb-6 md:pt-24 md:pb-8">
+      <section className="relative overflow-hidden bg-background pt-4 pb-4 md:pt-6 md:pb-6">
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_50%,rgba(147,51,234,0.08),transparent_50%)]" />
         <div className="container relative z-10 text-center">
           <div className="mx-auto max-w-3xl space-y-4">
