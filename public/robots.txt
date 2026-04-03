@@ -1,0 +1,26 @@
+User-agent: Googlebot
+Allow: /
+
+User-agent: Bingbot
+Allow: /
+
+User-agent: Twitterbot
+Allow: /
+
+User-agent: facebookexternalhit
+Allow: /
+
+User-agent: *
+Allow: /
+
+# Private pages - do not index
+Disallow: /admin
+Disallow: /dashboard
+Disallow: /checkout
+Disallow: /deposit
+Disallow: /messages
+Disallow: /add-listing
+Disallow: /orders
+Disallow: /forgot-password
+
+Sitemap: https://itemtr.com/sitemap.xml

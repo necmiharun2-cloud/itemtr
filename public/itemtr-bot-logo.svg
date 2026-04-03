@@ -1,0 +1,34 @@
+<svg width="1200" height="900" viewBox="0 0 1200 900" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="bg" x1="120" y1="60" x2="1080" y2="840" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#0F172A"/>
+      <stop offset="1" stop-color="#1E293B"/>
+    </linearGradient>
+    <linearGradient id="gold" x1="274" y1="252" x2="947" y2="713" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#FACC15"/>
+      <stop offset="1" stop-color="#F59E0B"/>
+    </linearGradient>
+    <linearGradient id="card" x1="218" y1="198" x2="1000" y2="744" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#111827" stop-opacity="0.95"/>
+      <stop offset="1" stop-color="#0B1220" stop-opacity="0.92"/>
+    </linearGradient>
+  </defs>
+  <rect width="1200" height="900" rx="44" fill="url(#bg)"/>
+  <circle cx="184" cy="160" r="120" fill="#22C55E" fill-opacity="0.08"/>
+  <circle cx="1004" cy="722" r="180" fill="#FACC15" fill-opacity="0.06"/>
+  <rect x="132" y="124" width="936" height="652" rx="40" fill="url(#card)" stroke="#334155" stroke-width="2"/>
+  <rect x="172" y="164" width="856" height="80" rx="24" fill="#0F172A" stroke="#1E293B"/>
+  <circle cx="224" cy="204" r="10" fill="#22C55E"/>
+  <circle cx="258" cy="204" r="10" fill="#FACC15"/>
+  <circle cx="292" cy="204" r="10" fill="#EF4444"/>
+  <rect x="756" y="184" width="224" height="40" rx="20" fill="#111827" stroke="#334155"/>
+  <path d="M332 308C332 283.699 351.699 264 376 264H824C848.301 264 868 283.699 868 308V592C868 616.301 848.301 636 824 636H376C351.699 636 332 616.301 332 592V308Z" fill="#0B1120" stroke="#334155" stroke-width="2"/>
+  <path d="M374 458H826" stroke="#1E293B" stroke-width="2" stroke-dasharray="8 10"/>
+  <path d="M600 320L734 398V556L600 634L466 556V398L600 320Z" fill="url(#gold)" fill-opacity="0.18" stroke="url(#gold)" stroke-width="14"/>
+  <path d="M600 366L692 418V522L600 574L508 522V418L600 366Z" fill="#111827" stroke="#FACC15" stroke-width="10"/>
+  <path d="M558 468H642" stroke="#FACC15" stroke-width="12" stroke-linecap="round"/>
+  <path d="M600 426V510" stroke="#FACC15" stroke-width="12" stroke-linecap="round"/>
+  <text x="600" y="708" text-anchor="middle" fill="#F8FAFC" font-size="88" font-family="Arial, Helvetica, sans-serif" font-weight="800">item<tspan fill="#FACC15">TR</tspan>.com</text>
+  <text x="600" y="764" text-anchor="middle" fill="#94A3B8" font-size="28" font-family="Arial, Helvetica, sans-serif" font-weight="700" letter-spacing="8">PAZAR YERI GORSEL ALANI</text>
+  <text x="868" y="210" text-anchor="middle" fill="#F8FAFC" font-size="16" font-family="Arial, Helvetica, sans-serif" font-weight="700" letter-spacing="3">MARKETPLACE VISUAL</text>
+</svg>

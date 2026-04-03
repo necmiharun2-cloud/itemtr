@@ -1,0 +1,147 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 222 47% 8%;
+    --foreground: 210 40% 96%;
+
+    --card: 222 44% 12%;
+    --card-foreground: 210 40% 96%;
+
+    --popover: 222 44% 12%;
+    --popover-foreground: 210 40% 96%;
+
+    --primary: 217 91% 60%;
+    --primary-foreground: 0 0% 100%;
+
+    --secondary: 222 40% 16%;
+    --secondary-foreground: 210 40% 96%;
+
+    --muted: 222 30% 18%;
+    --muted-foreground: 215 20% 55%;
+
+    --accent: 38 92% 50%;
+    --accent-foreground: 0 0% 100%;
+
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 210 40% 98%;
+
+    --border: 222 30% 20%;
+    --input: 222 30% 20%;
+    --ring: 217 91% 60%;
+
+    --radius: 0.75rem;
+
+    --success: 142 71% 45%;
+    --success-foreground: 0 0% 100%;
+
+    --badge-vitrin: 280 80% 55%;
+    --badge-vitrin-foreground: 0 0% 100%;
+
+    --sidebar-background: 0 0% 98%;
+    --sidebar-foreground: 240 5.3% 26.1%;
+    --sidebar-primary: 240 5.9% 10%;
+    --sidebar-primary-foreground: 0 0% 98%;
+    --sidebar-accent: 240 4.8% 95.9%;
+    --sidebar-accent-foreground: 240 5.9% 10%;
+    --sidebar-border: 220 13% 91%;
+    --sidebar-ring: 217.2 91.2% 59.8%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground font-sans antialiased;
+    font-family: 'Inter', system-ui, sans-serif;
+  }
+}
+
+@layer utilities {
+  .scrollbar-hide {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+  .scrollbar-hide::-webkit-scrollbar {
+    display: none;
+  }
+}
+
+
+@layer utilities {
+  .story-marquee {
+    animation: story-marquee 36s linear infinite;
+  }
+
+  .story-marquee:hover {
+    animation-play-state: paused;
+  }
+}
+
+@keyframes story-marquee {
+  from {
+    transform: translate3d(0, 0, 0);
+  }
+  to {
+    transform: translate3d(-50%, 0, 0);
+  }
+}
+
+@keyframes gold-flash {
+  0%, 100% {
+    background-color: rgba(234, 179, 8, 0.1); /* bg-yellow-500/10 */
+    box-shadow: 0 0 5px rgba(234, 179, 8, 0.2);
+    color: rgb(253, 224, 71); /* text-yellow-300 */
+  }
+  50% {
+    background-color: rgba(234, 179, 8, 0.3); /* bg-yellow-500/30 */
+    box-shadow: 0 0 15px rgba(234, 179, 8, 0.5);
+    color: rgb(255, 255, 255);
+  }
+}
+
+@keyframes text-gold-flash {
+  0%, 100% {
+    color: #ffd700;
+    text-shadow: 0 0 5px rgba(255, 215, 0, 0.4);
+    opacity: 1;
+  }
+  50% {
+    color: #ffffff;
+    text-shadow: 0 0 15px rgba(255, 215, 0, 0.8);
+    opacity: 0.8;
+  }
+}
+
+.text-gold-flash {
+  animation: text-gold-flash 1.5s ease-in-out infinite;
+}
+
+@keyframes neon-green-flash {
+  0%, 100% {
+    color: #00ff00;
+    text-shadow: 0 0 8px rgba(0, 255, 0, 0.8), 0 0 15px rgba(0, 255, 0, 0.4);
+    opacity: 1;
+  }
+  50% {
+    color: #ccffcc;
+    text-shadow: 0 0 20px rgba(0, 255, 0, 1), 0 0 35px rgba(0, 255, 0, 0.6);
+    opacity: 0.9;
+  }
+}
+
+.text-neon-green-flash {
+  animation: neon-green-flash 1s ease-in-out infinite !important;
+  font-weight: 900 !important;
+}
+
+.animate-gold-flash {
+  animation: gold-flash 2s ease-in-out infinite;
+}
