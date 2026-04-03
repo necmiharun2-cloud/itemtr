@@ -72,9 +72,21 @@ const Deposit = () => {
   }, [amount, custom]);
 
   const handleDeposit = async () => {
-    const currentUser = await getCurrentUser();
-    if (!currentUser) {
+    // Her zaman Supabase'den güncel kullanıcı verisini çek
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) {
       toast.error("Bakiye yüklemek için giriş yapmalısın.");
+      return;
+    }
+
+    const { data: profile } = await supabase
+      .from('profiles')
+      .select('balance, id')
+      .eq('id', user.id)
+      .single();
+
+    if (!profile) {
+      toast.error("Kullanıcı profili bulunamadı.");
       return;
     }
 
@@ -84,22 +96,28 @@ const Deposit = () => {
     }
 
     setSubmitting(true);
-    const firstDeposit = Number(currentUser.balance || 0) <= 0;
-    const updatedUser = await updateCurrentUser((user) => ({
-      ...user,
-      balance: Number(user.balance || 0) + resolvedAmount,
-    }));
-    const reward = await rewardCurrentUser(firstDeposit ? "first_deposit" : "deposit");
-    setSubmitting(false);
+    
+    // Yeni bakiyeyi hesapla
+    const currentBalance = Number(profile.balance || 0);
+    const newBalance = currentBalance + resolvedAmount;
+    
+    // Supabase'de bakiyeyi güncelle
+    const { error } = await supabase
+      .from('profiles')
+      .update({ balance: newBalance })
+      .eq('id', user.id);
 
-    if (!updatedUser) {
+    if (error) {
+      setSubmitting(false);
       toast.error("Bakiye yüklenemedi.");
       return;
     }
 
-    setCurrentBalance(Number(updatedUser.balance || 0));
+    setCurrentBalance(newBalance);
+    setSubmitting(false);
+    
     toast.success(`₺${resolvedAmount.toFixed(2)} bakiye hesabına yüklendi.`, {
-      description: reward.awardedXp > 0 ? `+${reward.awardedXp} TP kazandın.` : `${methods.find((item) => item.id === method)?.label || "Ödeme"} tamamlandı.`,
+      description: `${methods.find((item) => item.id === method)?.label || "Ödeme"} tamamlandı.`,
     });
   };
 
