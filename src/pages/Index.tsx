@@ -28,7 +28,6 @@ import { cn } from "@/lib/utils";
 
 const Index = () => {
   const navigate = useNavigate();
-  const [searchQuery, setSearchQuery] = useState("");
   const [vitrinListings, setVitrinListings] = useState<MarketplaceListing[]>(getVitrinListings());
   const [newListings, setNewListings] = useState<MarketplaceListing[]>(getNewListings());
   const [pvpListings, setPvpListings] = useState<MarketplaceListing[]>(getPvpServerListings());
@@ -50,13 +49,6 @@ const Index = () => {
     };
   }, []);
 
-  const handleSearch = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (searchQuery.trim()) {
-      navigate(`/search?q=${encodeURIComponent(searchQuery.trim())}`);
-    }
-  };
-
   return (
     <div className="min-h-screen bg-background">
       {/* Schema Markup for SEO */}
@@ -69,10 +61,10 @@ const Index = () => {
       <NavMenu />
       <StoryCategories />
 
-      <section className="relative overflow-hidden bg-background py-16 md:py-24">
+      <section className="relative overflow-hidden bg-background pt-16 pb-6 md:pt-24 md:pb-8">
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_50%,rgba(147,51,234,0.08),transparent_50%)]" />
         <div className="container relative z-10 text-center">
-          <div className="mx-auto max-w-3xl space-y-8">
+          <div className="mx-auto max-w-3xl space-y-4">
             <div className="space-y-4">
               {/* SEO: Ana H1 - Daha inandırıcı başlık */}
               <h1 className="text-4xl font-black italic tracking-tighter text-white md:text-6xl uppercase">
@@ -82,40 +74,11 @@ const Index = () => {
                 Alıcı Korumalı, Hızlı ve Şeffaf Alışverişin Adresi İtemTR.com
               </p>
             </div>
-
-            <form onSubmit={handleSearch} className="relative mx-auto max-w-2xl group">
-              <div className="absolute -inset-1 rounded-[2rem] bg-gradient-to-r from-primary/50 to-accent/50 blur opacity-25 transition duration-1000 group-hover:opacity-50" />
-              <div className="relative flex items-center bg-card border border-white/10 rounded-[1.5rem] p-2 shadow-2xl">
-                <Search className="ml-4 h-6 w-6 text-muted-foreground" />
-                <Input 
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  placeholder="Valorant, Steam, PUBG hesabı ara..." 
-                  className="flex-1 border-none bg-transparent text-lg font-medium placeholder:text-muted-foreground focus-visible:ring-0"
-                />
-                <Button type="submit" className="hidden h-12 rounded-xl bg-primary px-8 font-black italic tracking-widest uppercase md:flex">
-                  ARA
-                </Button>
-              </div>
-            </form>
-
-            <div className="flex flex-wrap items-center justify-center gap-6 pt-4">
-              {[
-                { icon: TrendingUp, label: "Popüler: Valorant Hesap" },
-                { icon: ShieldCheck, label: "Doğrulanmış Satıcılar" },
-                { icon: Zap, label: "Anında Teslimat" }
-              ].map((item, i) => (
-                <div key={i} className="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-muted-foreground opacity-60">
-                  <item.icon className="h-4 w-4 text-primary" />
-                  {item.label}
-                </div>
-              ))}
-            </div>
           </div>
         </div>
       </section>
 
-      <main className="container space-y-12 py-8">
+      <main className="container space-y-12 pb-8 pt-4">
         <HomeSlider />
         <RecentListingsTicker />
         <GameCategories />
