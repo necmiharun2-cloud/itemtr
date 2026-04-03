@@ -566,8 +566,20 @@ const ListingDetail = () => {
             {relatedListings.map((item) => (
               <ListingCard 
                 key={item.id} 
-                {...item} 
+                id={item.id}
+                title={item.title}
+                category={item.category}
+                seller={item.seller}
+                price={item.price}
+                oldPrice={item.oldPrice}
+                image={item.image}
+                imageColor={item.imageColor}
+                emoji={item.emoji}
+                views={item.views}
+                isAutoDelivery={item.isAutoDelivery}
+                tags={item.tags}
                 section={item.section || "new"}
+                sellerXp={item.sellerExperience}
               />
             ))}
           </div>

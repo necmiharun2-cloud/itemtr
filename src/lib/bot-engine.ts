@@ -487,6 +487,6 @@ const initializeBotAutomation = () => {
   setTimeout(runAutomation, 1000 * 3);
 };
 
-if (typeof window !== "undefined") {
+if (typeof window !== "undefined" && !import.meta.env.VITEST) {
   initializeBotAutomation();
 }

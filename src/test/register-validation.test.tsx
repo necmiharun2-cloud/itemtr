@@ -8,6 +8,9 @@ import Register from "@/pages/Register";
 
 vi.mock("@/lib/auth", () => ({
   registerUser: vi.fn(),
+  getCurrentUser: vi.fn().mockResolvedValue(null),
+  getUsers: vi.fn(() => []),
+  AUTH_CHANGED_EVENT: "itemtr-auth-changed",
 }));
 
 vi.mock("sonner", () => ({

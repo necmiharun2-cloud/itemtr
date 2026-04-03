@@ -412,6 +412,13 @@ const Admin = () => {
     }
   };
 
+  const handleLoadSampleKocuce = () => {
+    const sampleItems = getKocucePvpPool();
+    updateKocucePvpCache(sampleItems);
+    setImportedKocuceCount(sampleItems.length);
+    toast.success("Örnek PVP sunucu listesi başarıyla yüklendi!");
+  };
+
   // Admin yönetim fonksiyonları
   const approveListing = async (listingId: string) => {
     try {

@@ -20,6 +20,7 @@ import AddListing from "@/pages/AddListing";
 // Mock auth functions
 vi.mock("@/lib/auth", () => ({
   getCurrentUser: vi.fn(),
+  getUsers: vi.fn(() => []),
   loginUser: vi.fn(),
   registerUser: vi.fn(),
   logoutUser: vi.fn(),
@@ -29,23 +30,43 @@ vi.mock("@/lib/auth", () => ({
   AUTH_CHANGED_EVENT: "itemtr-auth-changed",
 }));
 
-// Mock supabase
-vi.mock("@/lib/supabase", () => ({
-  supabase: {
-    auth: {
-      getUser: vi.fn(),
-      signInWithPassword: vi.fn(),
-      signUp: vi.fn(),
-      signOut: vi.fn(),
+// Mock supabase — zincir: select → eq → … → order | single
+vi.mock("@/lib/supabase", () => {
+  const chain = () => {
+    const c: Record<string, unknown> = {};
+    const self = c as {
+      select: () => typeof c;
+      insert: () => Promise<{ error: null }>;
+      update: () => Promise<{ error: null }>;
+      upsert: () => Promise<{ error: null }>;
+      eq: () => typeof c;
+      or: () => typeof c;
+      order: () => Promise<{ data: unknown[]; error: null }>;
+      single: () => Promise<{ data: { balance?: number } | null; error: null }>;
+    };
+    c.select = () => c;
+    c.eq = () => c;
+    c.or = () => c;
+    c.order = () => Promise.resolve({ data: [], error: null });
+    c.single = () => Promise.resolve({ data: { balance: 100 }, error: null });
+    c.insert = () => Promise.resolve({ error: null });
+    c.update = () => Promise.resolve({ error: null });
+    c.upsert = () => Promise.resolve({ error: null });
+    return self;
+  };
+  return {
+    supabase: {
+      auth: {
+        getUser: vi.fn(),
+        signInWithPassword: vi.fn(),
+        signUp: vi.fn(),
+        signOut: vi.fn(),
+      },
+      from: vi.fn(chain),
+      rpc: vi.fn(),
     },
-    from: vi.fn(() => ({
-      select: vi.fn(() => ({ eq: vi.fn(() => ({ single: vi.fn() }) }) })),
-      insert: vi.fn(),
-      update: vi.fn(),
-      upsert: vi.fn(),
-    })),
-  },
-}));
+  };
+});
 
 // Mock toast
 vi.mock("sonner", () => ({
