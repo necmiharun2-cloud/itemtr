@@ -136,7 +136,88 @@ const ListingDetail = () => {
     fetchListing();
   }, [id]);
 
+  const isLocked = useMemo(() => isBotListingLocked(id), [id]);
+  const [isCheckingOut, setIsCheckingOut] = useState(false);
+
+  const handleCheckout = async () => {
+    if (!listing) return;
+    if (isLocked) {
+      toast.error("Ürün satışta değil.");
+      return;
+    }
+
+    setIsCheckingOut(true);
+
+    try {
+      const currentUser = await getCurrentUser();
+      if (!currentUser) {
+        toast.error("Satın almak için giriş yapmalısınız.");
+        navigate(`/login?redirect=${encodeURIComponent(`/listing/${id}`)}`);
+        return;
+      }
+
+      if (listing.seller === currentUser.username) {
+        toast.error("Kendi ilanınızı satın alamazsınız.");
+        return;
+      }
+
+      const priceNumber = Number(String(listing.price).replace(/[^\d,]/g, "").replace(",", "."));
+
+      const { data: profile } = await supabase
+        .from("profiles")
+        .select("balance")
+        .eq("id", currentUser.id)
+        .single();
+
+      const userBalance = Number(profile?.balance) || 0;
+
+      if (userBalance < priceNumber) {
+        toast.error("Yetersiz bakiye!", {
+          description: `Gerekli: ₺${priceNumber.toFixed(2)} | Bakiyeniz: ₺${userBalance.toFixed(2)}`,
+          action: {
+            label: "Bakiye Yükle",
+            onClick: () => navigate("/deposit"),
+          },
+        });
+        return;
+      }
+
+      const checkoutDraft = {
+        id: String(listing.id),
+        title: listing.title,
+        category: listing.category,
+        seller: listing.seller,
+        price: listing.price,
+        image: listing.image,
+        buyerBalance: userBalance,
+        buyerId: currentUser.id,
+      };
+      localStorage.setItem("itemtr_checkout_listing", JSON.stringify(checkoutDraft));
+
+      navigate(`/checkout?listingId=${listing.id}`);
+    } catch (error) {
+      toast.error("Bir hata oluştu. Lütfen tekrar deneyin.");
+    } finally {
+      setIsCheckingOut(false);
+    }
+  };
+
   const relatedListings = getMarketplaceListings().filter((item) => item.id !== listing?.id).slice(0, 4);
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-background">
+        <TopBar />
+        <Header />
+        <NavMenu />
+        <main className="container py-24 flex flex-col items-center justify-center gap-3 text-muted-foreground">
+          <Loader2 className="h-10 w-10 animate-spin text-primary" aria-label="Yükleniyor" />
+          <p className="text-sm">İlan yükleniyor…</p>
+        </main>
+        <Footer />
+      </div>
+    );
+  }
 
   if (!listing) {
     return (
@@ -153,77 +234,6 @@ const ListingDetail = () => {
       </div>
     );
   }
-
-  const isLocked = useMemo(() => isBotListingLocked(id), [id]);
-  const [isCheckingOut, setIsCheckingOut] = useState(false);
-
-  const handleCheckout = async () => {
-    // Bot ilanları için mevcut değil uyarısı
-    if (isLocked) {
-      toast.error("Ürün şu an mevcut değil.");
-      return;
-    }
-    
-    setIsCheckingOut(true);
-    
-    try {
-      // 1. Kullanıcı giriş kontrolü
-      const currentUser = await getCurrentUser();
-      if (!currentUser) {
-        toast.error("Satın almak için giriş yapmalısınız.");
-        navigate(`/login?redirect=${encodeURIComponent(`/listing/${id}`)}`);
-        return;
-      }
-      
-      // 2. Kendi ilanını kontrolü
-      if (listing.seller === currentUser.username) {
-        toast.error("Kendi ilanınızı satın alamazsınız.");
-        return;
-      }
-      
-      // 3. Fiyat parse
-      const priceNumber = Number(String(listing.price).replace(/[^\d,]/g, "").replace(",", "."));
-      
-      // 4. Bakiye kontrolü
-      const { data: profile } = await supabase
-        .from('profiles')
-        .select('balance')
-        .eq('id', currentUser.id)
-        .single();
-      
-      const userBalance = Number(profile?.balance) || 0;
-      
-      if (userBalance < priceNumber) {
-        toast.error("Yetersiz bakiye!", {
-          description: `Gerekli: ₺${priceNumber.toFixed(2)} | Bakiyeniz: ₺${userBalance.toFixed(2)}`,
-          action: {
-            label: "Bakiye Yükle",
-            onClick: () => navigate("/deposit"),
-          },
-        });
-        return;
-      }
-      
-      // 5. Checkout'a yönlendir
-      const checkoutDraft = {
-        id: String(listing.id),
-        title: listing.title,
-        category: listing.category,
-        seller: listing.seller,
-        price: listing.price,
-        image: listing.image,
-        buyerBalance: userBalance,
-        buyerId: currentUser.id,
-      };
-      localStorage.setItem("itemtr_checkout_listing", JSON.stringify(checkoutDraft));
-      
-      navigate(`/checkout?listingId=${listing.id}`);
-    } catch (error) {
-      toast.error("Bir hata oluştu. Lütfen tekrar deneyin.");
-    } finally {
-      setIsCheckingOut(false);
-    }
-  };
 
   return (
     <div className="min-h-screen bg-background">
