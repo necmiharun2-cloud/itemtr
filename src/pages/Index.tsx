@@ -5,6 +5,7 @@ import TopBar from "@/components/TopBar";
 import Header from "@/components/Header";
 import NavMenu from "@/components/NavMenu";
 import HeroCarousel from "@/components/HeroCarousel";
+import HomeSlider from "@/components/HomeSlider";
 import GameCategories from "@/components/GameCategories";
 import CategoryGrid from "@/components/CategoryGrid";
 import CategoryTabs from "@/components/CategoryTabs";
@@ -115,7 +116,7 @@ const Index = () => {
       </section>
 
       <main className="container space-y-12 py-8">
-        <HeroCarousel />
+        <HomeSlider />
         <RecentListingsTicker />
         <GameCategories />
         <CategoryTabs />
