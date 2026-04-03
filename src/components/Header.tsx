@@ -169,6 +169,12 @@ const Header = () => {
                       </button>
                     ))}
                   </div>
+                  <li>
+                    <Link to="/register" className="flex items-center gap-1 text-sm text-muted-foreground transition-colors hover:text-foreground">
+                      <ChevronRight className="h-3 w-3" />
+                      Kayıt Ol
+                    </Link>
+                  </li>
                 </div>
               ) : filteredSuggestions.length > 0 ? (
                 filteredSuggestions.map((s) => (
@@ -261,12 +267,9 @@ const Header = () => {
                 ) : (
                   <>
                     <Link to="/login" className="flex items-center gap-3 px-4 py-3 text-sm hover:bg-secondary/60 text-foreground"><LogIn className="h-4 w-4 text-primary" /> Giriş Yap</Link>
-                    <button 
-                      onClick={() => toast.info("itemTR.com Beta aşamasındadır. 5 Nisan tarihinde kullanıma açılacaktır.", { duration: 5000 })}
-                      className="w-full flex items-center gap-3 px-4 py-3 text-sm hover:bg-secondary/60 text-foreground border-t border-border/70 text-left"
-                    >
+                    <Link to="/register" className="flex items-center gap-3 px-4 py-3 text-sm hover:bg-secondary/60 text-foreground border-t border-border/70">
                       <User className="h-4 w-4 text-primary" /> Kayıt Ol
-                    </button>
+                    </Link>
                   </>
                 )}
               </div>

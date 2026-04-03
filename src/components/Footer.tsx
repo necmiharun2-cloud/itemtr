@@ -1,6 +1,5 @@
 import { MessageCircle, Shield, CreditCard, Headphones, ChevronRight } from "lucide-react";
 import { Link } from "react-router-dom";
-import { toast } from "sonner";
 
 const Footer = () => {
   return (
@@ -169,13 +168,10 @@ const Footer = () => {
                 </li>
               ))}
               <li>
-                <button 
-                  onClick={() => toast.info("itemTR.com Beta aşamasındadır. 5 Nisan tarihinde kullanıma açılacaktır.", { duration: 5000 })}
-                  className="flex items-center gap-1 text-sm text-muted-foreground transition-colors hover:text-foreground"
-                >
+                <Link to="/register" className="flex items-center gap-1 text-sm text-muted-foreground transition-colors hover:text-foreground">
                   <ChevronRight className="h-3 w-3" />
                   Kayıt Ol
-                </button>
+                </Link>
               </li>
             </ul>
           </div>
