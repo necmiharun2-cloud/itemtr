@@ -5,7 +5,7 @@ import { cn } from "@/lib/utils";
 const slides = [
   {
     id: 1,
-    image: "https://images.unsplash.com/photo-1605806616949-1e87b487cb2a?q=80&w=2000&auto=format&fit=crop",
+    image: "https://blog.roblox.com/wp-content/uploads/2023/09/RDC-2023-Blog-Header.jpg",
     title: "ROBLOX\nİLAN PAZARI",
     description: "Roblox İlan Pazarı İtemTR'de! Hemen Al, Hemen Sat, Kazancını Katla!",
     link: "/category/roblox",
@@ -13,7 +13,7 @@ const slides = [
   },
   {
     id: 2,
-    image: "https://images.unsplash.com/photo-1542751371-adc38448a05e?q=80&w=2000&auto=format&fit=crop",
+    image: "https://images.contentstack.io/v3/assets/bltb6530b271fddd0b1/bltc04e4637ddfa7f52/63083dbb7713b10b00da782f/Valorant_2022_EP5_A2_PlayVALORANT_ContentSync_Article_Banner_1100x618.jpg",
     title: "VALORANT\nİLAN PAZARI",
     description: "En ucuz fiyatlarla Valorant Point ve skinli hesaplar burada.",
     link: "/category/valorant",
@@ -21,7 +21,7 @@ const slides = [
   },
   {
     id: 3,
-    image: "https://images.unsplash.com/photo-1552824236-077641c1d1fa?q=80&w=2000&auto=format&fit=crop",
+    image: "https://cdn.akamai.steamstatic.com/store/home/store_home_share.jpg",
     title: "STEAM\nCÜZDAN KODU",
     description: "Steam bakiyeni anında yükle, oyun keyfini doyasıya yaşa.",
     link: "/category/steam",
@@ -29,7 +29,7 @@ const slides = [
   },
   {
     id: 4,
-    image: "https://images.unsplash.com/photo-1542751110-97427bbecf20?q=80&w=2000&auto=format&fit=crop",
+    image: "https://cdn.akamai.steamstatic.com/apps/csgo/images/csgo_react/social/cs2.jpg",
     title: "CS2\nSKİN & KASA",
     description: "Nadir skinler ve kasalar en güvenli yoldan senin olsun.",
     link: "/category/cs2",
