@@ -327,8 +327,8 @@ const Admin = () => {
     setActiveTab("support");
   };
 
-  const handleSendSupportReply = () => {
-    const currentUser = getCurrentUser();
+  const handleSendSupportReply = async () => {
+    const currentUser = await getCurrentUser();
     if (!currentUser || !supportConversation || !supportReply.trim()) {
       toast.error("Lütfen yanıt mesajı girin.");
       return;
