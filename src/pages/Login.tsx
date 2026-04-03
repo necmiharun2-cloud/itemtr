@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Link, useNavigate, useSearchParams } from "react-router-dom";
+import { Link, useNavigate, useSearchParams, useLocation } from "react-router-dom";
 import { toast } from "sonner";
 import TopBar from "@/components/TopBar";
 import Header from "@/components/Header";
@@ -11,6 +11,7 @@ import { Mail, Lock, Eye, EyeOff, Loader2 } from "lucide-react";
 
 const Login = () => {
   const navigate = useNavigate();
+  const location = useLocation();
   const [searchParams] = useSearchParams();
   const [showPassword, setShowPassword] = useState(false);
   const [email, setEmail] = useState("");
@@ -42,7 +43,8 @@ const Login = () => {
       }
 
       toast.success(`Hoş geldin ${result.user.name}!`);
-      const redirectTarget = searchParams.get("redirect");
+      const stateReturn = (location.state as { returnUrl?: string } | null)?.returnUrl;
+      const redirectTarget = searchParams.get("redirect") || stateReturn;
       const fallbackTarget = result.user.role === "admin" ? "/admin" : "/dashboard";
       navigate(redirectTarget || fallbackTarget, { replace: true });
     } catch (error) {

@@ -101,7 +101,34 @@ const ListingDetail = () => {
         return;
       }
 
-      // Hiçbir yerde yoksa
+      // BOT- ile başlayan test / kilitli ilanlar: kayıt yoksa yine de vitrin göster
+      if (String(id).startsWith("BOT-")) {
+        setListing({
+          id: String(id),
+          title: "Bot test ilanı",
+          category: "CS2 / HESAP SATIŞI",
+          game: "CS2",
+          seller: "İtemTR Bot",
+          sellerAvatar: "",
+          price: "₺99,90",
+          description: "Bu ilan bot tarafından oluşturulmuş test ilanıdır.",
+          features: ["Test"],
+          image: BOT_LOGO_IMAGE,
+          imageColor: "bg-gradient-to-br from-slate-700/40 to-slate-900/50",
+          views: 0,
+          favorites: 0,
+          createdAt: "Az önce",
+          tags: ["test"],
+          oldPrice: "",
+          reviews: [],
+          sellerExperience: 0,
+          isBot: true,
+          isPurchasable: false,
+        });
+        setLoading(false);
+        return;
+      }
+
       setListing(null);
       setLoading(false);
     };
@@ -144,7 +171,7 @@ const ListingDetail = () => {
       const currentUser = await getCurrentUser();
       if (!currentUser) {
         toast.error("Satın almak için giriş yapmalısınız.");
-        navigate("/login", { state: { returnUrl: `/listing/${id}` } });
+        navigate(`/login?redirect=${encodeURIComponent(`/listing/${id}`)}`);
         return;
       }
       
@@ -312,7 +339,7 @@ const ListingDetail = () => {
                 </div>
                 <Button 
                   onClick={handleCheckout} 
-                  disabled={isCheckingOut}
+                  disabled={isCheckingOut || isLocked}
                   className={cn(
                     "w-full rounded-xl h-12 text-base font-semibold gap-2",
                     isLocked && "opacity-50 cursor-not-allowed bg-muted text-muted-foreground hover:bg-muted"
@@ -323,8 +350,13 @@ const ListingDetail = () => {
                   ) : (
                     <ShoppingCart className="h-5 w-5" />
                   )}
-                  {isLocked ? "Ürün Mevcut Değil" : isCheckingOut ? "Kontrol Ediliyor..." : "Satın Al"}
+                  {isLocked ? "Ürün Satışta Değil" : isCheckingOut ? "Kontrol Ediliyor..." : "Satın Al"}
                 </Button>
+                {isLocked && (
+                  <p className="text-[11px] text-center text-amber-500/90 font-bold uppercase tracking-wide leading-snug">
+                    Gerçek kullanıcılar bu bot ilanını satın alamaz.
+                  </p>
+                )}
                 <div className="flex gap-2"><Button variant="outline" className="flex-1 rounded-xl gap-2" type="button"><Heart className="h-4 w-4" />Favorile</Button><Link to="/messages" className="flex-1"><Button variant="outline" className="w-full rounded-xl gap-2"><MessageCircle className="h-4 w-4" />Mesaj Gönder</Button></Link></div>
                 <Button variant="ghost" size="sm" className="w-full text-muted-foreground gap-2" type="button"><Flag className="h-4 w-4" />İlanı Şikayet Et</Button>
               </div>

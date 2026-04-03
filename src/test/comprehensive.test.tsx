@@ -66,7 +66,9 @@ const localStorageMock = {
 };
 Object.defineProperty(window, "localStorage", {
   value: localStorageMock,
-};
+  writable: true,
+  configurable: true,
+});
 
 // Test wrapper
 const TestWrapper = ({ children }: { children: React.ReactNode }) => {

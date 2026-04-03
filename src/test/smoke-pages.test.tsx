@@ -26,8 +26,8 @@ describe("critical page smoke tests", () => {
   it("blocks bot listings on listing detail page", async () => {
     renderAt("/listing/BOT-TEST", <ListingDetail />, "/listing/:id");
 
-    expect(await screen.findByRole("button", { name: /ÜRÜN SATIŞTA DEĞİL/i })).toBeDisabled();
-    expect(screen.getByText(/GERÇEK KULLANICILAR BU BOT İLANINI SATIN ALAMAZ/i)).toBeInTheDocument();
+    expect(await screen.findByRole("button", { name: /ürün satışta değil/i })).toBeDisabled();
+    expect(screen.getByText(/bot ilanını satın alamaz/i)).toBeInTheDocument();
   });
 
   it("blocks checkout for bot listings", async () => {

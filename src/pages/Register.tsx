@@ -44,8 +44,7 @@ const Register = () => {
         return "";
       case "password":
         if (!value) return "Şifre zorunlu";
-        if (value.length < 6) return "En az 6 karakter olmalı";
-        if (value.length < 8) return "Zayıf şifre - 8+ karakter önerilir";
+        if (value.length < 8) return "Şifre en az 8 karakter olmalı";
         return "";
       case "passwordRepeat":
         if (!value) return "Şifre tekrarı zorunlu";
