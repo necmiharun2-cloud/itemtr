@@ -17,6 +17,74 @@ let kocucePvpCache: KocuceItem[] = (() => {
   return getCombinedPvpPool(); // Initial seed from both sources
 })();
 
+const BOT_IMAGE_CACHE_KEY = "itemtr_bot_image_cache_v1";
+const BOT_IMAGE_REFRESH_FLAG = "itemtr_bot_images_refreshed_v1";
+
+type BotImageCache = Record<string, string>;
+
+const getBotImageCache = (): BotImageCache => {
+  const raw = localStorage.getItem(BOT_IMAGE_CACHE_KEY);
+  if (!raw) return {};
+  try {
+    const parsed = JSON.parse(raw);
+    if (parsed && typeof parsed === "object") return parsed as BotImageCache;
+    return {};
+  } catch {
+    return {};
+  }
+};
+
+const setBotImageCache = (cache: BotImageCache) => {
+  localStorage.setItem(BOT_IMAGE_CACHE_KEY, JSON.stringify(cache));
+};
+
+const normalizeImageQuery = (value: string) => {
+  return value
+    .replace(/[\p{Emoji_Presentation}\p{Extended_Pictographic}]/gu, " ")
+    .replace(/[^\p{L}\p{N}\s-]/gu, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+};
+
+const getSearchQueryForListing = (category: string, title: string) => {
+  const lowerCategory = String(category || "").toLowerCase();
+  const normalizedTitle = normalizeImageQuery(title || "");
+
+  if (lowerCategory.includes("valorant")) return "valorant";
+  if (lowerCategory.includes("cs2") || lowerCategory.includes("counter")) return "counter strike";
+  if (lowerCategory.includes("league") || lowerCategory.includes("lol")) return "league of legends";
+  if (lowerCategory.includes("pubg")) return "pubg mobile";
+  if (lowerCategory.includes("roblox")) return "roblox";
+  if (lowerCategory.includes("steam")) return "steam";
+
+  if (lowerCategory.includes("pvp")) {
+    // PVP server listings often contain game name in the title
+    const titleLower = normalizedTitle.toLowerCase();
+    if (titleLower.includes("metin2")) return "metin2 mmorpg";
+    if (titleLower.includes("knight")) return "knight online";
+    return "mmorpg fantasy";
+  }
+
+  // Fallback to cleaned category/title keywords
+  const normalizedCategory = normalizeImageQuery(category || "");
+  const fallback = normalizedCategory || normalizedTitle;
+  return fallback || "gaming";
+};
+
+const getHdImageForListing = (category: string, title: string) => {
+  const query = getSearchQueryForListing(category, title);
+  const cacheKey = query.toLowerCase();
+  const cache = getBotImageCache();
+  if (cache[cacheKey]) return cache[cacheKey];
+
+  // Unsplash Source provides a random high-res image for a query (no API key).
+  // We add a cache-buster based on the query so each query is stable once cached.
+  const url = `https://source.unsplash.com/1600x900/?${encodeURIComponent(query)}`;
+  cache[cacheKey] = url;
+  setBotImageCache(cache);
+  return url;
+};
+
 export const updateKocucePvpCache = (items: KocuceItem[]) => {
   kocucePvpCache = items;
   localStorage.setItem("itemtr_kocuce_cache", JSON.stringify(items));
@@ -233,10 +301,47 @@ const getUserTags = () => {
 
   return parsedTags.length > 0 ? parsedTags : DEFAULT_BOT_TAGS;
 };
+
+const isPlaceholderBotImage = (image?: string | null) => {
+  const value = String(image || "").trim();
+  if (!value) return true;
+
+  // Local assets / placeholder logos
+  if (value === BOT_LOGO_IMAGE) return true;
+  if (value.startsWith("/itemtr")) return true;
+  if (value.includes("itemtr-bot-logo")) return true;
+  if (value.includes("ui-avatars.com")) return true;
+  return false;
+};
+
+const refreshBotHistoryImagesOnce = () => {
+  if (localStorage.getItem(BOT_IMAGE_REFRESH_FLAG) === "true") return;
+
+  const history = safeJSONParse<BotListing[]>(localStorage.getItem(BOT_HISTORY_KEY), []);
+  if (!Array.isArray(history) || history.length === 0) {
+    localStorage.setItem(BOT_IMAGE_REFRESH_FLAG, "true");
+    return;
+  }
+
+  const updated = history.map((listing) => {
+    if (!listing) return listing;
+    if (!isPlaceholderBotImage(listing.image)) return listing;
+    return {
+      ...listing,
+      image: getHdImageForListing(listing.category, listing.title),
+    };
+  });
+
+  localStorage.setItem(BOT_HISTORY_KEY, JSON.stringify(updated));
+  localStorage.setItem(BOT_IMAGE_REFRESH_FLAG, "true");
+};
 export const getBotNamePoolStats = (): BotNamePoolStats => { const usedNames = getUsedBotNames().length; return { totalNames: BOT_NAME_POOL.length, usedNames, remainingNames: Math.max(BOT_NAME_POOL.length - usedNames, 0) }; };
 export const getBotStats = (): BotStats => { const today = new Date().toLocaleDateString(); const stats = safeJSONParse<BotStats | null>(localStorage.getItem(BOT_STATS_KEY), null); if (!stats) return { totalListings: 148, todayListings: 24, lastUpdate: today }; if (stats.lastUpdate !== today) { const refreshed = { ...stats, todayListings: 0, lastUpdate: today }; localStorage.setItem(BOT_STATS_KEY, JSON.stringify(refreshed)); return refreshed; } return stats; };
 const incrementBotStats = () => { const stats = getBotStats(); localStorage.setItem(BOT_STATS_KEY, JSON.stringify({ totalListings: stats.totalListings + 1, todayListings: stats.todayListings + 1, lastUpdate: new Date().toLocaleDateString() })); };
-export const getBotHistory = (): BotListing[] => safeJSONParse<BotListing[]>(localStorage.getItem(BOT_HISTORY_KEY), []);
+export const getBotHistory = (): BotListing[] => {
+  refreshBotHistoryImagesOnce();
+  return safeJSONParse<BotListing[]>(localStorage.getItem(BOT_HISTORY_KEY), []);
+};
 export const getBotListingById = (listingId?: string | null) => listingId ? getBotHistory().find((listing) => listing.id === listingId) || null : null;
 export const isBotListingLocked = (listingId?: string | number | null) => { if (!listingId) return false; const normalizedId = String(listingId); if (normalizedId.startsWith("BOT-")) return true; const listing = getBotListingById(normalizedId); return Boolean(listing?.isBot || listing?.isPurchasable === false); };
 
@@ -363,10 +468,8 @@ const CUSTOM_IMAGES = [
   // Random seller experience 0-6 (for 7 tier levels)
   const sellerExp = Math.floor(Math.random() * 7);
   
-  // Mix images - 70% chance ItemTR logo, 30% mixed
-  const finalImage = categoryPool === "PVP Serverlar" 
-    ? pvpImage 
-    : (customImage || (Math.random() < 0.7 ? BOT_LOGO_IMAGE : pickRandom(CUSTOM_IMAGES)));
+  // HD image per category/title (cached). Allow manual override via admin setting.
+  const finalImage = customImage || getHdImageForListing(categoryPool, title);
 
   const newListing: BotListing = { 
     id: `BOT-${Math.random().toString(36).slice(2, 7).toUpperCase()}`, 
