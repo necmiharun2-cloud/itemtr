@@ -44,6 +44,7 @@ import { getLevelTier } from "@/lib/levels";
 import { createSupportConversation, getConversationSummary, getSupportTicketsForCurrentUser, getVisibleConversations, MESSAGING_EVENT } from "@/lib/messaging";
 import { getWalletTransactions, getUserBalance } from "@/lib/wallet";
 import { supabase } from "@/lib/supabase";
+import { seedNotifications, getNotifications, markAllNotificationsRead } from "@/lib/notifications";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
