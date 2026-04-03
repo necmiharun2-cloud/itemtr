@@ -26,12 +26,12 @@ const sellerData = {
 };
 
 const sellerListings = [
-  { title: "Yeşil Faktör! Teslimat! 300 Övgü CS2 Hesap", category: "CS2", seller: "IlkanShop", price: "49,90 ₺", oldPrice: "199,00 ₺", imageColor: "bg-gradient-to-br from-orange-600/40 to-yellow-700/30" },
-  { title: "1000 Saat CS2 Hesap Prime", category: "CS2", seller: "IlkanShop", price: "129,90 ₺", imageColor: "bg-gradient-to-br from-blue-600/40 to-cyan-700/30" },
-  { title: "Faceit Level 8 CS2 Hesap", category: "CS2", seller: "IlkanShop", price: "199,90 ₺", imageColor: "bg-gradient-to-br from-purple-600/40 to-violet-700/30" },
-  { title: "Gold Nova CS2 Hesap", category: "CS2", seller: "IlkanShop", price: "89,90 ₺", oldPrice: "149,90 ₺", imageColor: "bg-gradient-to-br from-amber-600/40 to-yellow-700/30" },
-  { title: "Steam Level 50 Hesap", category: "Steam", seller: "IlkanShop", price: "59,90 ₺", imageColor: "bg-gradient-to-br from-sky-600/40 to-blue-700/30" },
-  { title: "Valorant Diamond Hesap", category: "Valorant", seller: "IlkanShop", price: "299,90 ₺", imageColor: "bg-gradient-to-br from-red-600/40 to-pink-700/30" },
+  { id: "cs2-1", title: "Yeşil Faktör! Teslimat! 300 Övgü CS2 Hesap", category: "CS2", seller: "IlkanShop", price: "49,90 ₺", oldPrice: "199,00 ₺", imageColor: "bg-gradient-to-br from-orange-600/40 to-yellow-700/30" },
+  { id: "cs2-2", title: "1000 Saat CS2 Hesap Prime", category: "CS2", seller: "IlkanShop", price: "129,90 ₺", imageColor: "bg-gradient-to-br from-blue-600/40 to-cyan-700/30" },
+  { id: "cs2-3", title: "Faceit Level 8 CS2 Hesap", category: "CS2", seller: "IlkanShop", price: "199,90 ₺", imageColor: "bg-gradient-to-br from-purple-600/40 to-violet-700/30" },
+  { id: "cs2-4", title: "Gold Nova CS2 Hesap", category: "CS2", seller: "IlkanShop", price: "89,90 ₺", oldPrice: "149,90 ₺", imageColor: "bg-gradient-to-br from-amber-600/40 to-yellow-700/30" },
+  { id: "steam-1", title: "Steam Level 50 Hesap", category: "Steam", seller: "IlkanShop", price: "59,90 ₺", imageColor: "bg-gradient-to-br from-sky-600/40 to-blue-700/30" },
+  { id: "val-1", title: "Valorant Diamond Hesap", category: "Valorant", seller: "IlkanShop", price: "299,90 ₺", imageColor: "bg-gradient-to-br from-red-600/40 to-pink-700/30" },
 ];
 
 const reviews = [
@@ -117,8 +117,8 @@ const Profile = () => {
         {/* Tab Content */}
         {activeTab === "İlanlar" && (
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3">
-            {sellerListings.map((listing, i) => (
-              <Link key={i} to={`/listing/${i + 1}`}>
+            {sellerListings.map((listing) => (
+              <Link key={listing.id} to={`/listing/${listing.id}`}>
                 <ListingCard {...listing} />
               </Link>
             ))}

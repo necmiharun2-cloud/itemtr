@@ -27,6 +27,12 @@ const Category = () => {
   const [sortBy, setSortBy] = useState("En Yeni");
   const [showFilters, setShowFilters] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
+  
+  // Price filter state
+  const [minPrice, setMinPrice] = useState("");
+  const [maxPrice, setMaxPrice] = useState("");
+  const [sellerRating, setSellerRating] = useState("Tümü");
+  const [activeFilters, setActiveFilters] = useState({ min: "", max: "", rating: "Tümü" });
 
   const categoryName = slug ? slug.replace(/-/g, " ").replace(/\b\w/g, (char) => char.toUpperCase()) : "Tüm Kategoriler";
 
@@ -39,8 +45,26 @@ const Category = () => {
   const listings = useMemo(() => {
     const base = getListingsForCategory(slug).filter((listing) => listing.section !== "pvp");
     const bySubCategory = activeSubCat === "Tümü" ? base : base.filter((item) => slugifyCategory(item.category).includes(slugifyCategory(activeSubCat)) || item.title.toLowerCase().includes(activeSubCat.toLowerCase()));
-    return sortListings(bySubCategory, sortBy);
-  }, [slug, activeSubCat, sortBy]);
+    
+    // Apply price filter
+    let filtered = bySubCategory;
+    if (activeFilters.min || activeFilters.max) {
+      filtered = filtered.filter((item) => {
+        const price = Number(String(item.price).replace(/[^\d,]/g, "").replace(",", "."));
+        const min = activeFilters.min ? Number(activeFilters.min) : 0;
+        const max = activeFilters.max ? Number(activeFilters.max) : Infinity;
+        return price >= min && price <= max;
+      });
+    }
+    
+    // Apply seller rating filter
+    if (activeFilters.rating && activeFilters.rating !== "Tümü") {
+      const minRating = parseFloat(activeFilters.rating);
+      filtered = filtered.filter((item) => (item.sellerRating || 0) >= minRating);
+    }
+    
+    return sortListings(filtered, sortBy);
+  }, [slug, activeSubCat, sortBy, activeFilters]);
 
   return (
     <div className="min-h-screen bg-background">
@@ -99,26 +123,61 @@ const Category = () => {
         </div>
 
         {showFilters && (
-          <div className="grid grid-cols-2 gap-4 rounded-xl border border-border bg-card p-4 md:grid-cols-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 rounded-xl border border-border bg-card p-4">
             <div>
               <label className="text-xs font-medium text-muted-foreground">Min Fiyat</label>
-              <input className="mt-1 w-full rounded-lg border border-border bg-secondary px-3 py-2 text-sm text-foreground" placeholder="0 ₺" />
+              <input 
+                className="mt-1 w-full rounded-lg border border-border bg-secondary px-3 py-2 text-sm text-foreground" 
+                placeholder="0 ₺" 
+                type="number"
+                value={minPrice}
+                onChange={(e) => setMinPrice(e.target.value)}
+              />
             </div>
             <div>
               <label className="text-xs font-medium text-muted-foreground">Max Fiyat</label>
-              <input className="mt-1 w-full rounded-lg border border-border bg-secondary px-3 py-2 text-sm text-foreground" placeholder="10.000 ₺" />
+              <input 
+                className="mt-1 w-full rounded-lg border border-border bg-secondary px-3 py-2 text-sm text-foreground" 
+                placeholder="10.000 ₺" 
+                type="number"
+                value={maxPrice}
+                onChange={(e) => setMaxPrice(e.target.value)}
+              />
             </div>
             <div>
               <label className="text-xs font-medium text-muted-foreground">Satıcı Puanı</label>
-              <select className="mt-1 w-full rounded-lg border border-border bg-secondary px-3 py-2 text-sm text-foreground">
+              <select 
+                className="mt-1 w-full rounded-lg border border-border bg-secondary px-3 py-2 text-sm text-foreground"
+                value={sellerRating}
+                onChange={(e) => setSellerRating(e.target.value)}
+              >
                 <option>Tümü</option>
                 <option>4.5+</option>
                 <option>4.0+</option>
                 <option>3.5+</option>
               </select>
             </div>
-            <div className="flex items-end">
-              <Button className="w-full rounded-lg">Filtrele</Button>
+            <div className="flex items-end gap-2">
+              <Button 
+                className="flex-1 rounded-lg"
+                onClick={() => setActiveFilters({ min: minPrice, max: maxPrice, rating: sellerRating })}
+              >
+                Filtrele
+              </Button>
+              {(activeFilters.min || activeFilters.max || activeFilters.rating !== "Tümü") && (
+                <Button 
+                  variant="outline"
+                  className="rounded-lg"
+                  onClick={() => {
+                    setMinPrice("");
+                    setMaxPrice("");
+                    setSellerRating("Tümü");
+                    setActiveFilters({ min: "", max: "", rating: "Tümü" });
+                  }}
+                >
+                  Sıfırla
+                </Button>
+              )}
             </div>
           </div>
         )}

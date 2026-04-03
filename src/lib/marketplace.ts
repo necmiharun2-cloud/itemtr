@@ -29,6 +29,7 @@ export type MarketplaceListing = {
   reviews?: any[];
   sellerAvatar?: string;
   sellerExperience?: number; // 0-6 for 7 tier levels
+  sellerRating?: number; // 0-5 rating
   createdTimestamp: number;
   status?: string;
   stock?: number;
