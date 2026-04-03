@@ -29,7 +29,7 @@ const badgeMap = {
 } as const;
 
 const ListingCard = ({
-  id = "1",
+  id,
   title,
   category,
   seller,
@@ -51,6 +51,9 @@ const ListingCard = ({
   const discount = oldPrice && previousPrice > 0 ? Math.round((1 - currentPrice / previousPrice) * 100) : 0;
   const badge = badgeMap[section];
 
+  // Ensure id is valid
+  const listingId = id ? String(id) : "1";
+
   const handleFavorite = (event: React.MouseEvent<HTMLButtonElement>) => {
     event.preventDefault();
     event.stopPropagation();
@@ -68,7 +71,7 @@ const ListingCard = ({
 
   return (
     <Link
-      to={`/listing/${id}`}
+      to={`/listing/${listingId}`}
       className="group block h-full overflow-hidden rounded-xl border border-border bg-card transition-all duration-200 hover:-translate-y-0.5 hover:border-primary/40 hover:shadow-lg hover:shadow-primary/5"
     >
       <div className="relative">

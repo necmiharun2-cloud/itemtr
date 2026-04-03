@@ -75,7 +75,23 @@ const FeaturedListings = ({ section, listings, initialCount = 10 }: FeaturedList
       ) : (
         <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5">
           {displayedListings.map((listing) => (
-            <ListingCard key={listing.id} {...listing} section={listing.section} />
+            <ListingCard 
+              key={listing.id} 
+              id={listing.id}
+              title={listing.title}
+              category={listing.category}
+              seller={listing.seller}
+              price={listing.price}
+              oldPrice={listing.oldPrice}
+              image={listing.image}
+              imageColor={listing.imageColor}
+              emoji={listing.emoji}
+              views={listing.views}
+              isAutoDelivery={listing.isAutoDelivery}
+              tags={listing.tags}
+              section={listing.section}
+              sellerXp={listing.sellerExperience}
+            />
           ))}
         </div>
       )}
