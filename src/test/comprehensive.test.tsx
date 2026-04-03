@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { render, screen, fireEvent, waitFor } from "@testing-library/react";
+import { render, screen, fireEvent, waitFor, within } from "@testing-library/react";
 import { MemoryRouter, Route, Routes } from "react-router-dom";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { toast } from "sonner";
@@ -106,13 +106,14 @@ describe("Auth Flow Tests", () => {
   });
 
   it("should show error on empty form submission", async () => {
-    const { getByRole } = render(
+    render(
       <TestWrapper>
         <Login />
       </TestWrapper>
     );
-    
-    const submitButton = getByRole("button", { name: /Giriş Yap/i });
+
+    const form = screen.getByRole("form");
+    const submitButton = within(form).getByRole("button", { name: /^Giriş Yap$/i });
     fireEvent.click(submitButton);
     
     await waitFor(() => {
@@ -122,25 +123,26 @@ describe("Auth Flow Tests", () => {
 
   it("should handle successful login", async () => {
     const { loginUser } = await import("@/lib/auth");
-    (loginUser as jest.Mock).mockResolvedValue({
+    vi.mocked(loginUser).mockResolvedValue({
       ok: true,
       user: { id: "1", name: "Test User", role: "user" },
     });
-    
-    const { getByPlaceholderText, getByRole } = render(
+
+    render(
       <TestWrapper>
         <Login />
       </TestWrapper>
     );
-    
-    fireEvent.change(getByPlaceholderText(/ornek@email.com/i), {
+
+    fireEvent.change(screen.getByPlaceholderText(/ornek@email.com/i), {
       target: { value: "test@test.com" },
     });
-    fireEvent.change(getByPlaceholderText(/••••••••/i), {
+    fireEvent.change(screen.getByPlaceholderText(/••••••••/i), {
       target: { value: "password123" },
     });
-    
-    fireEvent.click(getByRole("button", { name: /Giriş Yap/i }));
+
+    const form = screen.getByRole("form");
+    fireEvent.click(within(form).getByRole("button", { name: /^Giriş Yap$/i }));
     
     await waitFor(() => {
       expect(loginUser).toHaveBeenCalledWith("test@test.com", "password123");
@@ -155,7 +157,7 @@ describe("Dashboard Tests", () => {
 
   it("should redirect to login if not authenticated", async () => {
     const { getCurrentUser } = await import("@/lib/auth");
-    (getCurrentUser as jest.Mock).mockResolvedValue(null);
+    vi.mocked(getCurrentUser).mockResolvedValue(null);
     
     render(
       <MemoryRouter initialEntries={["/dashboard"]}>
@@ -173,7 +175,7 @@ describe("Dashboard Tests", () => {
 
   it("should render dashboard for authenticated user", async () => {
     const { getCurrentUser } = await import("@/lib/auth");
-    (getCurrentUser as jest.Mock).mockResolvedValue({
+    vi.mocked(getCurrentUser).mockResolvedValue({
       id: "1",
       name: "Test User",
       username: "testuser",
@@ -202,7 +204,7 @@ describe("Dashboard Tests", () => {
 describe("Protected Route Tests", () => {
   it("should protect admin routes", async () => {
     const { getCurrentUser } = await import("@/lib/auth");
-    (getCurrentUser as jest.Mock).mockResolvedValue({
+    vi.mocked(getCurrentUser).mockResolvedValue({
       id: "1",
       role: "user",
     });
@@ -216,17 +218,20 @@ describe("Protected Route Tests", () => {
       </MemoryRouter>
     );
     
-    // Should redirect non-admin users
     await waitFor(() => {
-      expect(screen.queryByText(/Yönetim Paneli/i)).not.toBeInTheDocument();
+      expect(screen.queryByText(/Admin Paneli/i)).not.toBeInTheDocument();
     });
   });
 });
 
 describe("API Error Handling Tests", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
   it("should handle network errors gracefully", async () => {
     const { getCurrentUser } = await import("@/lib/auth");
-    (getCurrentUser as jest.Mock).mockRejectedValue(new Error("Network error"));
+    vi.mocked(getCurrentUser).mockRejectedValue(new Error("Network error"));
     
     render(
       <TestWrapper>
@@ -234,9 +239,10 @@ describe("API Error Handling Tests", () => {
       </TestWrapper>
     );
     
-    // Should not crash
     await waitFor(() => {
-      expect(screen.queryByText(/Yükleniyor/i)).not.toBeInTheDocument();
+      expect(toast.error).toHaveBeenCalledWith(
+        "Panel verileri yüklenirken hata oluştu. Lütfen tekrar deneyin.",
+      );
     });
   });
 
@@ -244,7 +250,7 @@ describe("API Error Handling Tests", () => {
     localStorageMock.getItem.mockReturnValue("invalid json");
     
     const { getCurrentUser } = await import("@/lib/auth");
-    (getCurrentUser as jest.Mock).mockResolvedValue({
+    vi.mocked(getCurrentUser).mockResolvedValue({
       id: "1",
       name: "Test",
       role: "user",
@@ -262,8 +268,6 @@ describe("API Error Handling Tests", () => {
 
 describe("Form Validation Tests", () => {
   it("should validate email format", async () => {
-    const { registerUser } = await import("@/lib/auth");
-    
     render(
       <TestWrapper>
         <Register />
@@ -286,15 +290,15 @@ describe("Async Operation Tests", () => {
   it("should handle concurrent async operations", async () => {
     const { getCurrentUser, updateCurrentUser } = await import("@/lib/auth");
     
-    (getCurrentUser as jest.Mock).mockResolvedValue({
+    vi.mocked(getCurrentUser).mockResolvedValue({
       id: "1",
       name: "Test",
       balance: 100,
       role: "user",
       levelState: { xp: 0, counts: {}, history: [] },
     });
-    
-    (updateCurrentUser as jest.Mock).mockImplementation(async () => {
+
+    vi.mocked(updateCurrentUser).mockImplementation(async () => {
       await new Promise(resolve => setTimeout(resolve, 100));
       return { id: "1", balance: 200 };
     });

@@ -193,23 +193,24 @@ const Dashboard = () => {
 
     const syncUserState = async () => {
       setIsLoading(true);
-      const current = await getCurrentUser();
-      if (!current) {
-        navigate("/login");
-        return;
-      }
+      try {
+        const current = await getCurrentUser();
+        if (!current) {
+          navigate("/login");
+          return;
+        }
 
-      setUserProfile({
-        name: current.name,
-        username: current.username,
-        email: current.email,
-        phone: current.phone,
-        avatar: current.avatar,
-        balance: current.balance,
-        rating: current.rating,
-        isVerified: current.isVerified,
-      });
-      
+        setUserProfile({
+          name: current.name,
+          username: current.username,
+          email: current.email,
+          phone: current.phone,
+          avatar: current.avatar,
+          balance: current.balance,
+          rating: current.rating,
+          isVerified: current.isVerified,
+        });
+
       // GERÇEK WALLET VERİLERİNİ ÇEK
       const [transactions, balance] = await Promise.all([
         getWalletTransactions(current.id),
@@ -303,19 +304,28 @@ const Dashboard = () => {
             };
           }),
       );
-      
-      setIsLoading(false);
+      } catch (err) {
+        console.error("[Dashboard] syncUserState", err);
+        toast.error("Panel verileri yüklenirken hata oluştu. Lütfen tekrar deneyin.");
+        navigate("/login");
+      } finally {
+        setIsLoading(false);
+      }
     };
 
-    syncUserState();
-    window.addEventListener(AUTH_CHANGED_EVENT, () => syncUserState());
-    window.addEventListener(MESSAGING_EVENT, () => syncUserState());
-    window.addEventListener("storage", () => syncUserState());
+    const onSync = () => {
+      void syncUserState();
+    };
+
+    void syncUserState();
+    window.addEventListener(AUTH_CHANGED_EVENT, onSync);
+    window.addEventListener(MESSAGING_EVENT, onSync);
+    window.addEventListener("storage", onSync);
 
     return () => {
-      window.removeEventListener(AUTH_CHANGED_EVENT, () => syncUserState());
-      window.removeEventListener(MESSAGING_EVENT, () => syncUserState());
-      window.removeEventListener("storage", () => syncUserState());
+      window.removeEventListener(AUTH_CHANGED_EVENT, onSync);
+      window.removeEventListener(MESSAGING_EVENT, onSync);
+      window.removeEventListener("storage", onSync);
     };
   }, []);
 

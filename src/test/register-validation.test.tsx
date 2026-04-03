@@ -64,4 +64,25 @@ describe("Register doğrulama", () => {
     expect(registerUser).not.toHaveBeenCalled();
     expect(screen.getByText(/şifre en az 8 karakter/i)).toBeInTheDocument();
   });
+
+  it("şifre değişince (tekrar alanı dokunulmuşsa) eşleşme hatasını günceller", async () => {
+    render(wrapper(<Register />));
+
+    fireEvent.change(screen.getByPlaceholderText(/kullaniciadi/i), {
+      target: { value: "syncuser1" },
+    });
+    fireEvent.change(screen.getByPlaceholderText(/ornek@email.com/i), {
+      target: { value: "sync@example.com" },
+    });
+    const [pw, pw2] = screen.getAllByPlaceholderText(/••••••••/i);
+    fireEvent.change(pw, { target: { value: "password1" } });
+    fireEvent.change(pw2, { target: { value: "password1" } });
+    fireEvent.blur(pw2);
+
+    fireEvent.change(pw, { target: { value: "password2" } });
+
+    await waitFor(() => {
+      expect(screen.getByText(/şifreler eşleşmiyor/i)).toBeInTheDocument();
+    });
+  });
 });

@@ -31,7 +31,7 @@ const Register = () => {
   const [errors, setErrors] = useState<{[key: string]: string}>({});
   const [touched, setTouched] = useState<{[key: string]: boolean}>({});
 
-  const validateField = (name: string, value: string): string => {
+  const validateFieldWithForm = (name: string, value: string, f: typeof form): string => {
     switch (name) {
       case "username":
         if (!value.trim()) return "Kullanıcı adı zorunlu";
@@ -48,23 +48,44 @@ const Register = () => {
         return "";
       case "passwordRepeat":
         if (!value) return "Şifre tekrarı zorunlu";
-        if (value !== form.password) return "Şifreler eşleşmiyor";
+        if (value !== f.password) return "Şifreler eşleşmiyor";
         return "";
       default:
         return "";
     }
   };
 
+  const validateField = (name: string, value: string) => validateFieldWithForm(name, value, form);
+
   const handleChange = (field: string, value: string) => {
-    setForm(prev => ({ ...prev, [field]: value }));
-    if (touched[field]) {
-      setErrors(prev => ({ ...prev, [field]: validateField(field, value) }));
-    }
+    const nextForm = { ...form, [field]: value };
+    setForm(nextForm);
+    setErrors((prev) => {
+      const out = { ...prev };
+      if (touched[field]) {
+        out[field] = validateFieldWithForm(field, value, nextForm);
+      }
+      if (field === "password" && touched.passwordRepeat) {
+        out.passwordRepeat = validateFieldWithForm("passwordRepeat", nextForm.passwordRepeat, nextForm);
+      }
+      return out;
+    });
   };
 
   const handleBlur = (field: string) => {
-    setTouched(prev => ({ ...prev, [field]: true }));
-    setErrors(prev => ({ ...prev, [field]: validateField(field, form[field as keyof typeof form] as string) }));
+    setTouched((prev) => ({ ...prev, [field]: true }));
+    setErrors((prev) => {
+      const key = field as keyof typeof form;
+      const val = form[key] as string;
+      const out = {
+        ...prev,
+        [field]: validateFieldWithForm(field, val, form),
+      };
+      if (field === "password" && touched.passwordRepeat) {
+        out.passwordRepeat = validateFieldWithForm("passwordRepeat", form.passwordRepeat, form);
+      }
+      return out;
+    });
   };
 
   const fullName = useMemo(() => form.username.trim() || "Yeni Kullanıcı", [form.username]);
@@ -74,10 +95,10 @@ const Register = () => {
     
     // Validate all fields
     const newErrors: {[key: string]: string} = {};
-    newErrors.username = validateField("username", form.username);
-    newErrors.email = validateField("email", form.email);
-    newErrors.password = validateField("password", form.password);
-    newErrors.passwordRepeat = validateField("passwordRepeat", form.passwordRepeat);
+    newErrors.username = validateFieldWithForm("username", form.username, form);
+    newErrors.email = validateFieldWithForm("email", form.email, form);
+    newErrors.password = validateFieldWithForm("password", form.password, form);
+    newErrors.passwordRepeat = validateFieldWithForm("passwordRepeat", form.passwordRepeat, form);
     
     setErrors(newErrors);
     setTouched({ username: true, email: true, password: true, passwordRepeat: true });
