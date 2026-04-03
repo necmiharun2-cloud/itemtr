@@ -899,6 +899,7 @@ const Dashboard = () => {
                             <div className="text-xs font-black text-white italic">{listing.title}</div>
                             <div className="flex items-center gap-2 mt-1 opacity-0 group-hover:opacity-100 transition-all">
                               <button onClick={() => navigate(`/product/${listing.id}`)} className="text-[9px] font-black text-primary hover:underline">GÖRÜNTÜLE</button>
+                              <button onClick={() => navigate(`/edit-listing/${listing.id}`)} className="text-[9px] font-black text-blue-400 hover:underline">DÜZENLE</button>
                               <button onClick={() => deleteListing(listing.id)} className="text-[9px] font-black text-red-500 hover:underline">KALDIR</button>
                             </div>
                           </TableCell>

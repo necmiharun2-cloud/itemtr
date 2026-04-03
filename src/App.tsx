@@ -25,6 +25,7 @@ import Deposit from "./pages/Deposit.tsx";
 import ForgotPassword from "./pages/ForgotPassword.tsx";
 import ResetPassword from "./pages/ResetPassword.tsx";
 import AddListing from "./pages/AddListing.tsx";
+import EditListing from "./pages/EditListing.tsx";
 import Messages from "./pages/Messages.tsx";
 import Checkout from "./pages/Checkout.tsx";
 import Orders from "./pages/Orders.tsx";
@@ -135,6 +136,7 @@ const App = () => (
             <Route path="/forgot-password" element={<ForgotPassword />} />
             <Route path="/reset-password" element={<ResetPassword />} />
             <Route path="/add-listing" element={<ProtectedRoute><AddListing /></ProtectedRoute>} />
+            <Route path="/edit-listing/:id" element={<ProtectedRoute><EditListing /></ProtectedRoute>} />
             <Route path="/messages" element={<ProtectedRoute><Messages /></ProtectedRoute>} />
             <Route path="/checkout" element={<ProtectedRoute><Checkout /></ProtectedRoute>} />
             <Route path="/orders" element={<ProtectedRoute><Orders /></ProtectedRoute>} />
