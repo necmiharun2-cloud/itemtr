@@ -7,7 +7,19 @@ import Footer from "@/components/Footer";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { registerUser } from "@/lib/auth";
-import { Mail, Lock, User, Eye, EyeOff, Loader2, AlertCircle } from "lucide-react";
+import { Mail, Lock, User, Eye, EyeOff, Loader2, AlertCircle, CheckCircle2 } from "lucide-react";
+
+// Email validation regex
+const isValidEmail = (email: string): boolean => {
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  return emailRegex.test(email);
+};
+
+// Username validation - alphanumeric only
+const isValidUsername = (username: string): boolean => {
+  const usernameRegex = /^[a-zA-Z0-9_]{3,20}$/;
+  return usernameRegex.test(username);
+};
 
 const Register = () => {
   const navigate = useNavigate();
@@ -16,25 +28,63 @@ const Register = () => {
   const [showPasswordRepeat, setShowPasswordRepeat] = useState(false);
   const [loading, setLoading] = useState(false);
   const [form, setForm] = useState({ username: "", email: "", password: "", passwordRepeat: "", agree: true });
+  const [errors, setErrors] = useState<{[key: string]: string}>({});
+  const [touched, setTouched] = useState<{[key: string]: boolean}>({});
 
+  const validateField = (name: string, value: string): string => {
+    switch (name) {
+      case "username":
+        if (!value.trim()) return "Kullanıcı adı zorunlu";
+        if (value.length < 3) return "En az 3 karakter olmalı";
+        if (!isValidUsername(value)) return "Sadece harf, rakam ve alt çizgi kullanabilirsiniz";
+        return "";
+      case "email":
+        if (!value.trim()) return "E-posta zorunlu";
+        if (!isValidEmail(value)) return "Geçerli bir e-posta adresi girin";
+        return "";
+      case "password":
+        if (!value) return "Şifre zorunlu";
+        if (value.length < 6) return "En az 6 karakter olmalı";
+        if (value.length < 8) return "Zayıf şifre - 8+ karakter önerilir";
+        return "";
+      case "passwordRepeat":
+        if (!value) return "Şifre tekrarı zorunlu";
+        if (value !== form.password) return "Şifreler eşleşmiyor";
+        return "";
+      default:
+        return "";
+    }
+  };
+
+  const handleChange = (field: string, value: string) => {
+    setForm(prev => ({ ...prev, [field]: value }));
+    if (touched[field]) {
+      setErrors(prev => ({ ...prev, [field]: validateField(field, value) }));
+    }
+  };
+
+  const handleBlur = (field: string) => {
+    setTouched(prev => ({ ...prev, [field]: true }));
+    setErrors(prev => ({ ...prev, [field]: validateField(field, form[field as keyof typeof form] as string) }));
+  };
 
   const fullName = useMemo(() => form.username.trim() || "Yeni Kullanıcı", [form.username]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-
-    if (!form.username.trim() || !form.email.trim() || !form.password.trim()) {
-      toast.error("Lütfen zorunlu alanları doldurun.");
-      return;
-    }
-
-    if (form.password.length < 6) {
-      toast.error("Şifre en az 6 karakter olmalı.");
-      return;
-    }
-
-    if (form.password !== form.passwordRepeat) {
-      toast.error("Şifreler eşleşmiyor.");
+    
+    // Validate all fields
+    const newErrors: {[key: string]: string} = {};
+    newErrors.username = validateField("username", form.username);
+    newErrors.email = validateField("email", form.email);
+    newErrors.password = validateField("password", form.password);
+    newErrors.passwordRepeat = validateField("passwordRepeat", form.passwordRepeat);
+    
+    setErrors(newErrors);
+    setTouched({ username: true, email: true, password: true, passwordRepeat: true });
+    
+    if (Object.values(newErrors).some(err => err)) {
+      toast.error("Lütfen form hatalarını düzeltin");
       return;
     }
 
@@ -107,40 +157,55 @@ const Register = () => {
               <div className="space-y-2">
                 <label className="text-sm font-medium text-foreground">Kullanıcı Adı</label>
                 <div className="relative">
-                  <User className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                  <User className={`absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 ${errors.username && touched.username ? 'text-red-500' : 'text-muted-foreground'}`} />
                   <Input
                     placeholder="kullaniciadi"
                     value={form.username}
-                    onChange={(e) => setForm((prev) => ({ ...prev, username: e.target.value }))}
-                    className="pl-10 rounded-xl bg-secondary border-border"
+                    onChange={(e) => handleChange("username", e.target.value)}
+                    onBlur={() => handleBlur("username")}
+                    className={`pl-10 rounded-xl bg-secondary border-2 ${errors.username && touched.username ? 'border-red-500 focus:border-red-500' : 'border-border'} transition-colors`}
                   />
+                  {touched.username && !errors.username && form.username && (
+                    <CheckCircle2 className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-green-500" />
+                  )}
                 </div>
+                {errors.username && touched.username && (
+                  <p className="text-xs text-red-500 flex items-center gap-1"><AlertCircle className="h-3 w-3" />{errors.username}</p>
+                )}
               </div>
 
               <div className="space-y-2">
                 <label className="text-sm font-medium text-foreground">E-posta</label>
                 <div className="relative">
-                  <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                  <Mail className={`absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 ${errors.email && touched.email ? 'text-red-500' : 'text-muted-foreground'}`} />
                   <Input
                     type="email"
                     placeholder="ornek@email.com"
                     value={form.email}
-                    onChange={(e) => setForm((prev) => ({ ...prev, email: e.target.value }))}
-                    className="pl-10 rounded-xl bg-secondary border-border"
+                    onChange={(e) => handleChange("email", e.target.value)}
+                    onBlur={() => handleBlur("email")}
+                    className={`pl-10 rounded-xl bg-secondary border-2 ${errors.email && touched.email ? 'border-red-500 focus:border-red-500' : 'border-border'} transition-colors`}
                   />
+                  {touched.email && !errors.email && form.email && (
+                    <CheckCircle2 className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-green-500" />
+                  )}
                 </div>
+                {errors.email && touched.email && (
+                  <p className="text-xs text-red-500 flex items-center gap-1"><AlertCircle className="h-3 w-3" />{errors.email}</p>
+                )}
               </div>
 
               <div className="space-y-2">
                 <label className="text-sm font-medium text-foreground">Şifre</label>
                 <div className="relative">
-                  <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                  <Lock className={`absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 ${errors.password && touched.password ? 'text-red-500' : 'text-muted-foreground'}`} />
                   <Input
                     type={showPassword ? "text" : "password"}
                     placeholder="••••••••"
                     value={form.password}
-                    onChange={(e) => setForm((prev) => ({ ...prev, password: e.target.value }))}
-                    className="pl-10 pr-10 rounded-xl bg-secondary border-border"
+                    onChange={(e) => handleChange("password", e.target.value)}
+                    onBlur={() => handleBlur("password")}
+                    className={`pl-10 pr-10 rounded-xl bg-secondary border-2 ${errors.password && touched.password ? 'border-red-500 focus:border-red-500' : 'border-border'} transition-colors`}
                   />
                   <button
                     type="button"
@@ -150,18 +215,25 @@ const Register = () => {
                     {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                   </button>
                 </div>
+                {errors.password && touched.password && (
+                  <p className="text-xs text-red-500 flex items-center gap-1"><AlertCircle className="h-3 w-3" />{errors.password}</p>
+                )}
+                {form.password && !errors.password && (
+                  <p className="text-xs text-green-500 flex items-center gap-1"><CheckCircle2 className="h-3 w-3" />Güçlü şifre</p>
+                )}
               </div>
 
               <div className="space-y-2">
                 <label className="text-sm font-medium text-foreground">Şifre Tekrar</label>
                 <div className="relative">
-                  <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                  <Lock className={`absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 ${errors.passwordRepeat && touched.passwordRepeat ? 'text-red-500' : 'text-muted-foreground'}`} />
                   <Input
                     type={showPasswordRepeat ? "text" : "password"}
                     placeholder="••••••••"
                     value={form.passwordRepeat}
-                    onChange={(e) => setForm((prev) => ({ ...prev, passwordRepeat: e.target.value }))}
-                    className="pl-10 pr-10 rounded-xl bg-secondary border-border"
+                    onChange={(e) => handleChange("passwordRepeat", e.target.value)}
+                    onBlur={() => handleBlur("passwordRepeat")}
+                    className={`pl-10 pr-10 rounded-xl bg-secondary border-2 ${errors.passwordRepeat && touched.passwordRepeat ? 'border-red-500 focus:border-red-500' : 'border-border'} transition-colors`}
                   />
                   <button
                     type="button"
@@ -171,6 +243,12 @@ const Register = () => {
                     {showPasswordRepeat ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                   </button>
                 </div>
+                {errors.passwordRepeat && touched.passwordRepeat && (
+                  <p className="text-xs text-red-500 flex items-center gap-1"><AlertCircle className="h-3 w-3" />{errors.passwordRepeat}</p>
+                )}
+                {form.passwordRepeat && form.password === form.passwordRepeat && (
+                  <p className="text-xs text-green-500 flex items-center gap-1"><CheckCircle2 className="h-3 w-3" />Şifreler eşleşiyor</p>
+                )}
               </div>
 
               <label className="flex items-start gap-2 cursor-pointer">

@@ -6,6 +6,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { ThemeProvider } from "next-themes";
 import BotManager from "@/components/BotManager";
+import { FloatingSupport } from "@/components/LiveChat";
 import { getCurrentUser, seedAuth } from "@/lib/auth";
 import { seedMessaging } from "@/lib/messaging";
 import { testSupabaseConnection } from "@/lib/supabase";
@@ -116,6 +117,7 @@ const App = () => (
         <Bootstrap />
         <Toaster />
         <Sonner />
+        <FloatingSupport />
         <BrowserRouter>
           <Routes>
             <Route path="/" element={<Index />} />

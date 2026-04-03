@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { Search, User, Globe, Bell, Wallet, ChevronDown, LayoutDashboard, MessageCircle, ShieldCheck, ShoppingBag, PlusCircle, LogOut, LogIn } from "lucide-react";
-import { Link, useNavigate } from "react-router-dom";
+import { Search, User, Globe, Bell, Wallet, ChevronDown, LayoutDashboard, MessageCircle, ShieldCheck, ShoppingBag, PlusCircle, LogOut, LogIn, ChevronLeft, Gamepad2 } from "lucide-react";
+import { Link, useNavigate, useLocation } from "react-router-dom";
 import { cn } from "@/lib/utils";
 import { AUTH_CHANGED_EVENT, getCurrentUser, logoutUser } from "@/lib/auth";
 import { getVisibleConversations } from "@/lib/messaging";
@@ -20,6 +20,7 @@ const searchSuggestions = [
 
 const Header = () => {
   const navigate = useNavigate();
+  const location = useLocation();
   const [searchQuery, setSearchQuery] = useState("");
   const [showSuggestions, setShowSuggestions] = useState(false);
   const [selectedLang, setSelectedLang] = useState("TR");
@@ -33,6 +34,9 @@ const Header = () => {
   const [messageUnreadCount, setMessageUnreadCount] = useState(0);
   const bellRef = useRef<HTMLDivElement | null>(null);
   const accountRef = useRef<HTMLDivElement | null>(null);
+
+  // Geri butonu göster (ana sayfa ve / hariç)
+  const showBackButton = location.pathname !== "/" && location.pathname !== "";
 
   const filteredSuggestions = useMemo(
     () => searchSuggestions.filter((s) => s.toLowerCase().includes(searchQuery.toLowerCase())),
@@ -107,12 +111,26 @@ const Header = () => {
   return (
     <div className="bg-card border-b border-border sticky top-0 z-40 backdrop-blur supports-[backdrop-filter]:bg-card/90">
       <div className="container flex items-center justify-between py-3 gap-4">
-        <Link to="/" className="flex items-center gap-2 shrink-0">
-          <div className="flex items-center gap-1">
-            <div className="w-8 h-8 rounded-lg bg-primary flex items-center justify-center font-bold text-primary-foreground text-lg">İ</div>
-            <span className="text-xl font-bold text-foreground hidden sm:inline">
-              İtem<span className="text-primary">TR.com</span>
-            </span>
+        <Link to="/" className="flex items-center gap-3 shrink-0">
+          {showBackButton && (
+            <button 
+              onClick={() => navigate(-1)} 
+              className="p-2 rounded-lg bg-secondary hover:bg-secondary/80 transition-colors mr-1"
+              title="Geri"
+            >
+              <ChevronLeft className="h-5 w-5 text-muted-foreground" />
+            </button>
+          )}
+          <div className="flex items-center gap-2">
+            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-primary to-primary/70 flex items-center justify-center shadow-lg shadow-primary/20">
+              <Gamepad2 className="h-6 w-6 text-primary-foreground" />
+            </div>
+            <div className="hidden sm:flex flex-col">
+              <span className="text-xl font-black text-foreground tracking-tight leading-none">
+                İtem<span className="text-primary">TR</span>
+              </span>
+              <span className="text-[10px] text-muted-foreground font-medium tracking-wider">GÜVENLİ OYUN PAZARYERİ</span>
+            </div>
           </div>
         </Link>
 
