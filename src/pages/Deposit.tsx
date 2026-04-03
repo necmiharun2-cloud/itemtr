@@ -1,4 +1,5 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, useCallback } from "react";
+import { useNavigate } from "react-router-dom";
 import TopBar from "@/components/TopBar";
 import Header from "@/components/Header";
 import NavMenu from "@/components/NavMenu";
@@ -6,7 +7,8 @@ import Footer from "@/components/Footer";
 import { Wallet, CreditCard, Building2, Smartphone, Shield, Clock, CheckCircle2, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
-import { AUTH_CHANGED_EVENT, getCurrentUser, rewardCurrentUser, updateCurrentUser } from "@/lib/auth";
+import { supabase } from "@/lib/supabase";
+import { getCurrentUser, updateCurrentUser, rewardCurrentUser } from "@/lib/auth";
 
 const amounts = [50, 100, 250, 500, 1000, 2500];
 
@@ -17,22 +19,52 @@ const methods = [
 ];
 
 const Deposit = () => {
+  const navigate = useNavigate();
   const [currentBalance, setCurrentBalance] = useState(0);
+  const [currentUser, setCurrentUser] = useState<any>(null);
   const [amount, setAmount] = useState<number | null>(100);
   const [custom, setCustom] = useState("");
   const [method, setMethod] = useState("card");
   const [submitting, setSubmitting] = useState(false);
 
-  const syncBalance = async () => {
-    const current = await getCurrentUser();
-    setCurrentBalance(Number(current?.balance || 0));
-  };
+  // Güvenli bakiye senkronizasyonu - her zaman Supabase'den güncel veri çek
+  const syncBalance = useCallback(async () => {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) {
+        const { data: profile } = await supabase
+          .from('profiles')
+          .select('balance, id, username, name')
+          .eq('id', user.id)
+          .single();
+        
+        if (profile) {
+          setCurrentBalance(Number(profile.balance || 0));
+          setCurrentUser({ ...user, ...profile });
+          return;
+        }
+      }
+      // Kullanıcı yoksa veya hata varsa 0 göster
+      setCurrentBalance(0);
+      setCurrentUser(null);
+    } catch (error) {
+      console.error("[Deposit] Balance sync error:", error);
+      setCurrentBalance(0);
+      setCurrentUser(null);
+    }
+  }, []);
 
   useEffect(() => {
     syncBalance();
-    window.addEventListener(AUTH_CHANGED_EVENT, syncBalance);
-    return () => window.removeEventListener(AUTH_CHANGED_EVENT, syncBalance);
-  }, []);
+    // Geri tuşu ile dönüldüğünde tekrar senkronize et
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'visible') {
+        syncBalance();
+      }
+    };
+    window.addEventListener('visibilitychange', handleVisibilityChange);
+    return () => window.removeEventListener('visibilitychange', handleVisibilityChange);
+  }, [syncBalance]);
 
   const resolvedAmount = useMemo(() => {
     const raw = amount ?? Number(custom || 0);

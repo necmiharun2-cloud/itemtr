@@ -235,12 +235,12 @@ const AddListing = () => {
                   <div className="space-y-3">
                     <Label className="ml-1 text-[10px] font-black uppercase tracking-widest text-muted-foreground">KATEGORİ *</Label>
                     <Select value={formData.category} onValueChange={(v) => setFormData({ ...formData, category: v })}>
-                      <SelectTrigger className="h-14 rounded-2xl border-white/10 bg-white/5 px-6 font-bold">
+                      <SelectTrigger className="h-14 rounded-2xl border-white/10 bg-white/5 px-6 font-bold z-50">
                         <SelectValue placeholder="Kategori Seçin" />
                       </SelectTrigger>
-                      <SelectContent className="rounded-xl border-white/10 bg-card">
+                      <SelectContent position="popper" sideOffset={5} className="rounded-xl border-white/10 bg-card z-[100] max-h-[300px] overflow-y-auto">
                         {categoryOptions.map((c) => (
-                          <SelectItem key={c} value={c} className="py-3 text-[10px] font-bold uppercase tracking-widest">{c}</SelectItem>
+                          <SelectItem key={c} value={c} className="py-3 text-[10px] font-bold uppercase tracking-widest cursor-pointer hover:bg-primary/20">{c}</SelectItem>
                         ))}
                       </SelectContent>
                     </Select>
@@ -248,12 +248,12 @@ const AddListing = () => {
                   <div className="space-y-3">
                     <Label className="ml-1 text-[10px] font-black uppercase tracking-widest text-muted-foreground">OYUN / PLATFORM *</Label>
                     <Select value={formData.game} onValueChange={(v) => setFormData({ ...formData, game: v })}>
-                      <SelectTrigger className="h-14 rounded-2xl border-white/10 bg-white/5 px-6 font-bold">
+                      <SelectTrigger className="h-14 rounded-2xl border-white/10 bg-white/5 px-6 font-bold z-50">
                         <SelectValue placeholder="Oyun Seçin" />
                       </SelectTrigger>
-                      <SelectContent className="rounded-xl border-white/10 bg-card">
+                      <SelectContent position="popper" sideOffset={5} className="rounded-xl border-white/10 bg-card z-[100] max-h-[300px] overflow-y-auto">
                         {gameOptions.map((g) => (
-                          <SelectItem key={g} value={g} className="py-3 text-[10px] font-bold uppercase tracking-widest">{g}</SelectItem>
+                          <SelectItem key={g} value={g} className="py-3 text-[10px] font-bold uppercase tracking-widest cursor-pointer hover:bg-primary/20">{g}</SelectItem>
                         ))}
                       </SelectContent>
                     </Select>
