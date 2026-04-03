@@ -280,7 +280,7 @@ const Dashboard = () => {
         setActiveListings(formattedListings.length > 0 ? formattedListings : initialListings);
       }
       
-      setSupportTickets(getSupportTicketsForCurrentUser().map((ticket) => ({
+      setSupportTickets((await getSupportTicketsForCurrentUser()).map((ticket) => ({
         id: ticket.id,
         subject: ticket.subject,
         status: ticket.status,
@@ -351,9 +351,9 @@ const Dashboard = () => {
     navigate(`/dashboard?tab=${tab}`);
   };
 
-  const saveProfile = () => {
-    const previous = getCurrentUser();
-    const updated = updateCurrentUser((user) => ({
+  const saveProfile = async () => {
+    const previous = await getCurrentUser();
+    const updated = await updateCurrentUser((user) => ({
       ...user,
       name: userProfile.name,
       email: userProfile.email,
@@ -362,15 +362,15 @@ const Dashboard = () => {
     }));
 
     if (updated && previous) {
-      if (!previous.phone && updated.phone) rewardCurrentUser("phone_verified");
+      if (!previous.phone && updated.phone) await rewardCurrentUser("phone_verified");
       // Add more rewards if needed
     }
 
     toast.success("Profil bilgileri kaydedildi.");
   };
 
-  const resetProfile = () => {
-    const current = getCurrentUser();
+  const resetProfile = async () => {
+    const current = await getCurrentUser();
     if (!current) return;
     setUserProfile({
       name: current.name,
@@ -385,19 +385,19 @@ const Dashboard = () => {
     toast.success("Profil son kayıtlı değerlere döndürüldü.");
   };
 
-  const verifyKyc = () => {
-    updateCurrentUser((user) => ({ ...user, isVerified: true }));
-    const reward = rewardCurrentUser("identity_verified");
+  const verifyKyc = async () => {
+    await updateCurrentUser((user) => ({ ...user, isVerified: true }));
+    const reward = await rewardCurrentUser("identity_verified");
     setLevelInfo(getLevelTier(reward.user?.levelState.xp || levelInfo.currentXp));
     toast.success("Kimlik doğrulama adımı tamamlandı.", {
       description: reward.awardedXp > 0 ? `+${reward.awardedXp} TP kazandınız.` : undefined,
     });
   };
 
-  const addBalance = (amount: number) => {
+  const addBalance = async (amount: number) => {
     const wasZero = userProfile.balance <= 0;
-    updateCurrentUser((user) => ({ ...user, balance: user.balance + amount }));
-    const reward = rewardCurrentUser(wasZero ? "first_deposit" : "deposit");
+    await updateCurrentUser((user) => ({ ...user, balance: user.balance + amount }));
+    const reward = await rewardCurrentUser(wasZero ? "first_deposit" : "deposit");
     setLevelInfo(getLevelTier(reward.user?.levelState.xp || levelInfo.currentXp));
     setWalletTxns((prev) => [
       { id: `TXN${Date.now()}`, type: "Panel Yükleme", amount: `+₺${amount}`, date: "Bugün", color: "text-success" },
@@ -408,12 +408,12 @@ const Dashboard = () => {
     });
   };
 
-  const withdrawBalance = () => {
+  const withdrawBalance = async () => {
     if (userProfile.balance < 100) {
       toast.error("Para çekmek için en az ₺100 bakiye gerekli.");
       return;
     }
-    updateCurrentUser((user) => ({ ...user, balance: user.balance - 100 }));
+    await updateCurrentUser((user) => ({ ...user, balance: user.balance - 100 }));
     setWalletTxns((prev) => [
       { id: `TXN${Date.now()}`, type: "Para Çekme", amount: "-₺100", date: "Bugün", color: "text-red-500" },
       ...prev,
@@ -426,13 +426,13 @@ const Dashboard = () => {
     toast.success("İlan kaldırıldı.");
   };
 
-  const createSupportTicket = () => {
+  const createSupportTicket = async () => {
     if (!ticketForm.subject || !ticketForm.message) {
       toast.error("Lütfen konu ve mesaj alanlarını doldurun.");
       return;
     }
 
-    const current = getCurrentUser();
+    const current = await getCurrentUser();
     if (!current) {
       toast.error("Önce giriş yapmalısınız.");
       return;
