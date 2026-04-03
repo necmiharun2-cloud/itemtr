@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useParams, Link, useNavigate } from "react-router-dom";
 import TopBar from "@/components/TopBar";
 import Header from "@/components/Header";
@@ -19,47 +19,94 @@ import { cn } from "@/lib/utils";
 const ListingDetail = () => {
   const { id } = useParams();
   const navigate = useNavigate();
+  const [listing, setListing] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
 
-  const listing = useMemo(() => {
-    const staticListing = getMarketplaceListingById(id);
-    if (staticListing) return staticListing;
+  useEffect(() => {
+    const fetchListing = async () => {
+      if (!id) {
+        setLoading(false);
+        return;
+      }
 
-    const botListing = getBotListingById(id);
-    const fallbackBotListing = botListing || (String(id).startsWith("BOT-") ? {
-      id: String(id),
-      title: "Test Bot İlanı",
-      category: "Otomatik Listeleme",
-      seller: "BotMarket",
-      price: "0,00 ₺",
-      description: "Bot güvenlik testi için oluşturulmuş örnek ilan.",
-      image: BOT_LOGO_IMAGE,
-      tags: ["Test", "Kapalı"],
-      reviews: [],
-      sellerAvatar: "",
-      sellerExperience: 0,
-    } : null);
-    if (!fallbackBotListing) return null;
+      // Önce Supabase'den dene
+      const { data: supabaseListing, error } = await supabase
+        .from('listings')
+        .select('*, profiles:seller_id(username, avatar)')
+        .eq('id', id)
+        .single();
 
-    return {
-      id: fallbackBotListing.id,
-      title: fallbackBotListing.title,
-      category: fallbackBotListing.category,
-      game: fallbackBotListing.category,
-      seller: fallbackBotListing.seller,
-      price: fallbackBotListing.price,
-      description: fallbackBotListing.description,
-      features: ["Canlı Vitrin", "Anlık Güncelleme", "Otomatik Etiketleme"],
-      image: fallbackBotListing.image || BOT_LOGO_IMAGE,
-      imageColor: "bg-gradient-to-br from-slate-700/40 to-slate-900/50",
-      views: 512,
-      favorites: 14,
-      createdAt: "Az önce",
-      tags: fallbackBotListing.tags,
-      oldPrice: "",
-      reviews: fallbackBotListing.reviews || [],
-      sellerAvatar: (fallbackBotListing as any).sellerAvatar || "",
-      sellerExperience: (fallbackBotListing as any).sellerExperience ?? 0,
+      if (supabaseListing && !error) {
+        setListing({
+          id: supabaseListing.id,
+          title: supabaseListing.title,
+          category: supabaseListing.category,
+          game: supabaseListing.game,
+          seller: supabaseListing.profiles?.username || 'Bilinmiyor',
+          sellerAvatar: supabaseListing.profiles?.avatar || '',
+          price: `₺${supabaseListing.price}`,
+          description: supabaseListing.description,
+          features: supabaseListing.features || [],
+          image: supabaseListing.image || BOT_LOGO_IMAGE,
+          imageColor: 'bg-gradient-to-br from-slate-700/40 to-slate-900/50',
+          views: supabaseListing.views || 0,
+          favorites: supabaseListing.favorites || 0,
+          createdAt: supabaseListing.created_at 
+            ? new Date(supabaseListing.created_at).toLocaleDateString('tr-TR')
+            : 'Az önce',
+          tags: supabaseListing.tags || [],
+          oldPrice: '',
+          reviews: [],
+          sellerExperience: 0,
+          isBot: false,
+          isPurchasable: supabaseListing.status === 'active',
+        });
+        setLoading(false);
+        return;
+      }
+
+      // Supabase'de yoksa local/bot listesine bak
+      const staticListing = getMarketplaceListingById(id);
+      if (staticListing) {
+        setListing(staticListing);
+        setLoading(false);
+        return;
+      }
+
+      const botListing = getBotListingById(id);
+      if (botListing) {
+        setListing({
+          id: botListing.id,
+          title: botListing.title,
+          category: botListing.category,
+          game: botListing.category,
+          seller: botListing.seller,
+          price: botListing.price,
+          description: botListing.description,
+          features: ['Canlı Vitrin', 'Anlık Güncelleme', 'Otomatik Etiketleme'],
+          image: botListing.image || BOT_LOGO_IMAGE,
+          imageColor: 'bg-gradient-to-br from-slate-700/40 to-slate-900/50',
+          views: 512,
+          favorites: 14,
+          createdAt: 'Az önce',
+          tags: botListing.tags,
+          oldPrice: '',
+          reviews: botListing.reviews || [],
+          sellerAvatar: (botListing as any).sellerAvatar || '',
+          sellerExperience: (botListing as any).sellerExperience ?? 0,
+          isBot: true,
+          isPurchasable: botListing.isPurchasable,
+        });
+        setLoading(false);
+        return;
+      }
+
+      // Hiçbir yerde yoksa
+      setListing(null);
+      setLoading(false);
     };
+
+    fetchListing();
   }, [id]);
 
   const relatedListings = getMarketplaceListings().filter((item) => item.id !== listing?.id).slice(0, 4);
