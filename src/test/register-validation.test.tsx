@@ -28,7 +28,7 @@ const wrapper = (ui: ReactElement) => {
   });
   return (
     <QueryClientProvider client={client}>
-      <MemoryRouter>{ui}</MemoryRouter>
+      <MemoryRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>{ui}</MemoryRouter>
     </QueryClientProvider>
   );
 };

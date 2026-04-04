@@ -63,8 +63,8 @@ export const HomeSlider = () => {
     >
       {/* Wrapper that determines the width of the active slide */}
       <div className="relative w-[90%] md:w-[75%] lg:w-[65%] mx-auto">
-        <div 
-          className="flex transition-transform duration-700 ease-[cubic-bezier(0.25,1,0.5,1)]"
+        <div
+          className="flex transition-transform duration-700 [transition-timing-function:cubic-bezier(0.25,1,0.5,1)]"
           style={{ transform: `translateX(-${current * 100}%)` }}
         >
           {slides.map((slide, i) => (
@@ -81,7 +81,7 @@ export const HomeSlider = () => {
                 <img 
                   src={slide.image} 
                   alt={slide.title.replace('\n', ' ')}
-                  className="h-full w-full object-cover transition-transform duration-[2000ms] hover:scale-105"
+                  className="h-full w-full object-cover transition-transform duration-[2s] hover:scale-105"
                 />
                 
                 {/* Gradient overlay mimicking itemsatis style (darker on left/bottom) */}

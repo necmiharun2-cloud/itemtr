@@ -1,7 +1,7 @@
 /**
- * ItemSatış.com Scraper Service
+ * ItemTR.com Scraper Service
  * 
- * itemsatis.com'dan ilanları, başlıkları, açıklamaları ve görselleri çeker
+ * itemtr.com'dan ilanları, başlıkları, açıklamaları ve görselleri çeker
  */
 
 export interface ItemSatisListing {
@@ -107,7 +107,7 @@ const getAvailableListings = (listings: ItemSatisListing[]): ItemSatisListing[] 
 };
 
 /**
- * Fetches and parses itemsatis.com listings with Unsplash images
+ * Fetches and parses itemtr.com listings with Unsplash images
  */
 export const fetchItemSatisListings = async (category?: string): Promise<ItemSatisListing[]> => {
   try {
@@ -343,7 +343,7 @@ export const getCachedItemSatisListings = (): ItemSatisListing[] => {
  * Real itemsatis scraper (requires CORS proxy or backend)
  * Note: Direct scraping from browser is blocked by CORS
  */
-export const scrapeItemSatis = async (url: string = "https://www.itemsatis.com"): Promise<ItemSatisListing[]> => {
-  console.log("[ItemSatis] Gerçek scraping için backend proxy gerekli. Unsplash görselleri kullanılıyor.");
+export const scrapeItemSatis = async (url: string = "https://www.itemtr.com"): Promise<ItemSatisListing[]> => {
+  console.log("[ItemTR] Gerçek scraping için backend proxy gerekli. Unsplash görselleri kullanılıyor.");
   return fetchItemSatisListings();
 };

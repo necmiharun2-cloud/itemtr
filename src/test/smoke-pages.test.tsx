@@ -84,7 +84,10 @@ describe("critical page smoke tests", () => {
   const renderAt = (path: string, element: React.ReactNode, routePath?: string) =>
     render(
       <TooltipProvider>
-        <MemoryRouter initialEntries={[path]}>
+        <MemoryRouter
+          initialEntries={[path]}
+          future={{ v7_startTransition: true, v7_relativeSplatPath: true }}
+        >
           <Routes>
             <Route path={routePath ?? path} element={element} />
           </Routes>

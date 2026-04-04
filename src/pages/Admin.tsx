@@ -251,7 +251,7 @@ const Admin = () => {
       window.removeEventListener("itemtr-marketplace-updated", handleUpdate);
       window.removeEventListener(MESSAGING_EVENT, syncSupport);
     };
-  }, []);
+  }, [navigate]);
 
   useEffect(() => {
     localStorage.setItem("itemtr_admin_users", JSON.stringify(users));

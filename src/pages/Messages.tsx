@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useSearchParams } from "react-router-dom";
 import { Search, Send, ShieldCheck, CheckCheck, Loader2 } from "lucide-react";
 import TopBar from "@/components/TopBar";
@@ -23,7 +23,7 @@ const Messages = () => {
   const [loading, setLoading] = useState(true);
   const scrollRef = useRef<HTMLDivElement>(null);
 
-  const syncConversations = async () => {
+  const syncConversations = useCallback(async () => {
     setLoading(true);
     const user = await getCurrentUser();
     const next = await getVisibleConversations();
@@ -38,13 +38,13 @@ const Messages = () => {
       return next[0]?.id || "";
     });
     setLoading(false);
-  };
+  }, [searchParams]);
 
   useEffect(() => {
-    syncConversations();
+    void syncConversations();
     window.addEventListener(MESSAGING_EVENT, syncConversations);
     return () => window.removeEventListener(MESSAGING_EVENT, syncConversations);
-  }, [searchParams]);
+  }, [syncConversations]);
 
   const viewerId = currentUser?.username || "";
 

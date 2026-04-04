@@ -9,13 +9,7 @@ import Login from "@/pages/Login";
 import Register from "@/pages/Register";
 import Dashboard from "@/pages/Dashboard";
 import Admin from "@/pages/Admin";
-import Index from "@/pages/Index";
-import ListingDetail from "@/pages/ListingDetail";
-import Checkout from "@/pages/Checkout";
-import Messages from "@/pages/Messages";
-import Profile from "@/pages/Profile";
 import Deposit from "@/pages/Deposit";
-import AddListing from "@/pages/AddListing";
 
 // Mock auth functions
 vi.mock("@/lib/auth", () => ({
@@ -78,6 +72,23 @@ vi.mock("sonner", () => ({
   },
 }));
 
+vi.mock("@/lib/messaging", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("@/lib/messaging")>();
+  return {
+    ...actual,
+    getVisibleConversations: vi.fn(() => Promise.resolve([])),
+  };
+});
+
+vi.mock("@/lib/notifications", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("@/lib/notifications")>();
+  return {
+    ...actual,
+    seedNotifications: vi.fn(),
+    getNotifications: vi.fn(() => []),
+  };
+});
+
 // Mock localStorage
 const localStorageMock = {
   getItem: vi.fn(),
@@ -102,7 +113,7 @@ const TestWrapper = ({ children }: { children: React.ReactNode }) => {
   });
   return (
     <QueryClientProvider client={queryClient}>
-      <MemoryRouter>
+      <MemoryRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
         {children}
       </MemoryRouter>
     </QueryClientProvider>
@@ -181,7 +192,10 @@ describe("Dashboard Tests", () => {
     vi.mocked(getCurrentUser).mockResolvedValue(null);
     
     render(
-      <MemoryRouter initialEntries={["/dashboard"]}>
+      <MemoryRouter
+        initialEntries={["/dashboard"]}
+        future={{ v7_startTransition: true, v7_relativeSplatPath: true }}
+      >
         <Routes>
           <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/login" element={<div>Login Page</div>} />
@@ -231,7 +245,10 @@ describe("Protected Route Tests", () => {
     });
     
     render(
-      <MemoryRouter initialEntries={["/admin"]}>
+      <MemoryRouter
+        initialEntries={["/admin"]}
+        future={{ v7_startTransition: true, v7_relativeSplatPath: true }}
+      >
         <Routes>
           <Route path="/admin" element={<Admin />} />
           <Route path="/dashboard" element={<div>Dashboard Page</div>} />

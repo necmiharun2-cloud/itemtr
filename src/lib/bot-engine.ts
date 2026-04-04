@@ -280,11 +280,11 @@ export const isBotListingLocked = (listingId?: string | number | null) => { if (
 export const generateBotListing = async (): Promise<BotListing> => { 
   const selectedCategory = localStorage.getItem("itemtr_bot_category") || "all"; 
 
-  // ItemSatış'tan gerçek ilan çek
+  // ItemTR'dan gerçek ilan çek
   const itemsatisListing = await getRandomItemSatisListing(selectedCategory);
   
   if (!itemsatisListing) {
-    // Fallback: Eğer itemsatis'ten veri gelmezse eski sistemi kullan
+    // Fallback: Eğer itemtr'den veri gelmezse eski sistemi kullan
     return generateFallbackBotListing(selectedCategory);
   }
 
@@ -300,13 +300,13 @@ export const generateBotListing = async (): Promise<BotListing> => {
     price: itemsatisListing.price,
     image: itemsatisListing.image,
     description: itemsatisListing.description, 
-    seoKeywords: [itemsatisListing.category.toLowerCase(), "bot", "itemsatis"], 
+    seoKeywords: [itemsatisListing.category.toLowerCase(), "bot", "itemtr"],
     isAutoDelivery: itemsatisListing.category !== "PVP Serverlar" && Math.random() > 0.3, 
     isBot: true, 
     isPurchasable: false, 
     availabilityMessage: "Ürün Mevcut Değil", 
     stock: 0, 
-    tags: ["Güvenilir", "Hızlı", "ItemSatış"], 
+    tags: ["Güvenilir", "Hızlı", "ItemTR"],
     reviews: [],
     bgColor: "bg-[#16a34a]", 
     isVitrin: Math.random() < 0.25, 

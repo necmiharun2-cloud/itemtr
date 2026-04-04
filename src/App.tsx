@@ -112,14 +112,14 @@ const GuestOnlyRoute = ({ children }: { children: JSX.Element }) => {
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
-    <ThemeProvider defaultTheme="dark" storageKey="vite-ui-theme">
+    <ThemeProvider attribute="class" defaultTheme="dark" storageKey="vite-ui-theme" enableSystem>
       <TooltipProvider>
         <BotManager />
         <Bootstrap />
         <Toaster />
         <Sonner />
         <FloatingSupport />
-        <BrowserRouter>
+        <BrowserRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
           <Routes>
             <Route path="/" element={<Index />} />
             <Route path="/listing/:id" element={<ListingDetail />} />

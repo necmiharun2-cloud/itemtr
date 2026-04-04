@@ -10,7 +10,7 @@
     "build:dev": "vite build --mode development",
     "lint": "eslint .",
     "preview": "vite preview",
-    "test": "vitest run",
+    "test": "node --max-old-space-size=8192 ./node_modules/vitest/vitest.mjs run",
     "test:watch": "vitest",
     "test:e2e": "playwright test",
     "typecheck": "tsc -b --noEmit"

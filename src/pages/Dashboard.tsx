@@ -332,7 +332,7 @@ const Dashboard = () => {
       window.removeEventListener(MESSAGING_EVENT, onSync);
       window.removeEventListener("storage", onSync);
     };
-  }, []);
+  }, [navigate]);
 
   useEffect(() => {
     localStorage.setItem("itemtr_user_listings", JSON.stringify(activeListings));
