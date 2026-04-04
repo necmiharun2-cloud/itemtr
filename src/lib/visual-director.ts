@@ -14,7 +14,7 @@ export interface ListingVisualData {
   brand?: string;
   platform?: string;
   aspectRatio?: "1:1" | "4:5" | "16:9";
-  style?: "gerçekçi" | "premium" | "modern" | "minimalist" | "teknoloji" | "oyun" | "kurumsal";
+  style?: string;
 }
 
 export interface PromptAnalysis {
@@ -29,7 +29,7 @@ export interface PromptAnalysis {
 }
 
 export class ListingVisualDirector {
-  // Kategori bazlı görsel şablonları
+  // Kategori bazlı görsel şablonları - STRICT GAME-SPECIFIC, NO FURNITURE
   private static readonly CATEGORY_TEMPLATES: Record<string, {
     scene: string;
     style: string;
@@ -39,60 +39,60 @@ export class ListingVisualDirector {
     negativePrompt: string;
   }> = {
     "CS2": {
-      scene: "profesyonel gaming setup, RGB aydınlatmalı mekanik klavye, gaming mouse, yüksek çözünürlüklü monitörde Counter-Strike oyun arayüzü, silah skinleri görünür, cyberpunk atmosfer",
-      style: "hiper-realistik, ultra-detaylı, sinematik gaming fotoğrafçılığı, 8K kalite",
-      lighting: "dramatik RGB aydınlatma teal ve turuncu vurgular, monitörden yumuşak ambient ışık, profesyonel stüdyo aydınlatması",
-      colors: "derin siyahlar, canlı RGB spektrum, metalik griler, elektrik mavisi ve turuncu vurgular",
-      composition: "ürün-merkezli, sığ alan derinliği, 45 derece açı, premium ürün vitrini",
-      negativePrompt: "cartoon, anime, düşük kalite, bulanık, filigran, yazı, insan yüzleri, eller, distorsiyon, çirkin, amatör"
+      scene: "Counter-Strike 2 tactical environment, de_dust2 or de_inferno map atmosphere, weapon case opening moment, rare skin showcase with CS2 logo elements, competitive gaming arena background, terrorist vs counter-terrorist thematic visuals, bomb defusal scenario atmosphere",
+      style: "hyper-realistic digital art, premium gaming commercial, cinematic FPS atmosphere, ultra-sharp details, photorealistic textures, 8K render quality",
+      lighting: "dramatic cinematic lighting with orange and teal color grading, volumetric fog effects, sunset desert map lighting, competitive arena spotlights",
+      colors: "desert sand tones, tactical military greens, CT blue accents, T-side brown/orange, gunmetal grays, rare skin vibrant colors against muted background",
+      composition: "centered weapon or character focal point, rule of thirds, dynamic angle, depth of field background blur, professional game cover art composition",
+      negativePrompt: "gaming chair, desk, keyboard, mouse, room interior, office, furniture, RGB peripherals, computer monitor, generic stock photo, cartoon, anime, watermark text, huge text overlay, title text, slogan, fake banner, fake product card, UI elements, buttons, labels, cluttered layout, blurry, low quality, distorted, ugly"
     },
     "Valorant": {
-      scene: "şık gaming istasyonu Valorant estetiğiyle, ajan temalı setup, geometrik desenler, riot games tasarım unsurları, yüksek teknolojili gaming çevre birimleri",
-      style: "modern gaming reklamcılığı, premium teknoloji fotoğrafçılığı, keskin detaylar, canlı renkler",
-      lighting: "temiz beyaz stüdyo aydınlatması kırmızı vurgu ışıklarla, profesyonel ürün fotoğrafçılığı aydınlatması",
-      colors: "bembeyaz, canlı kırmızılar, koyu kömür grileri, altın vurgular, yüksek kontrast",
-      composition: "simetrik kompozisyon, merkezde ürün, temiz arka plan, profesyonel teknoloji ürün çekimi",
-      negativePrompt: "dağınık, kalabalık, düşük çözünürlük, cartoon tarzı, anime, filigran, yazı üstü, bulanık, distorsiyon"
+      scene: "Valorant agent ability effects, Spike planting/defusing scenario, tactical shooter arena, agent silhouette with ability visuals, futuristic tactical environment, radianite energy effects, high-tech combat zone",
+      style: "stylized realistic digital art, Riot Games cinematic quality, sharp clean visuals, premium FPS cover art, high contrast vibrant aesthetic",
+      lighting: "dramatic rim lighting, ability glow effects, neon accents on dark background, cinematic volumetric lighting, tactical night operation atmosphere",
+      colors: "Valorant red and black, electric cyan ability highlights, dark navy backgrounds, vibrant agent colors against dark environment, high contrast",
+      composition: "heroic agent pose or ability focal point, dramatic perspective, environmental storytelling, clean uncluttered focus, professional game key art style",
+      negativePrompt: "gaming chair, desk setup, room interior, office, furniture, keyboard, mouse, monitor, generic background, cartoon, anime style, watermark overload, text overlay, huge text, slogan, fake banner, UI mockup, product card frame, cluttered, messy, low quality, blurry"
     },
     "League of Legends": {
-      scene: "fantastik gaming ortamı büyülü atmosferle, Summoner's Rift ilhamlı arka plan unsurları, mistik parlayan efektler, fantezi estetiğiyle premium gaming aksesuarları",
-      style: "fantezi-teknoloji hibrit, büyülü realizm, premium gaming ürün fotoğrafçılığı, mistik atmosfer",
-      lighting: "büyülü ambient aydınlatma mavi ve altın tonlarda, yumuşak eterik parlama, sinematik rim aydınlatma",
-      colors: "derin morlar, büyülü maviler, altın vurgular, mistik deniz mavisi, zengin koyu arka planlar",
-      composition: "kahraman çekimi kompozisyonu, dramatik açı, premium gaming ürün sergileme, mistik ambiyans",
-      negativePrompt: "düşük kalite, bulanık, cartoon, anime tarzı, gerçekçi insanlar, filigran, yazı, distorsiyon, çirkin"
+      scene: "Summoner's Rift environment, magical runeterra landscape, champion ability showcase, mystical nexus energy, fantasy battlefield atmosphere, ancient magical ruins, epic MOBA arena",
+      style: "fantasy realism, League of Legends splash art quality, magical cinematic atmosphere, highly detailed fantasy illustration, premium game art",
+      lighting: "magical ethereal lighting, spell effect glows, mystical ambient light, dramatic fantasy shadows, enchanted atmosphere",
+      colors: "rich magical purples and blues, gold magical energy, mystical teals, fantasy earth tones, vibrant spell effects on dark mystical background",
+      composition: "epic champion or environment focal point, fantasy landscape depth, magical particle effects, splash art composition, cinematic framing",
+      negativePrompt: "gaming chair, desk, computer setup, room interior, office, furniture, modern tech, RGB lights, keyboard, mouse, cartoon, anime, realistic human photo, watermark text, huge text overlay, fake banner, fake UI, cluttered layout, low quality, blurry, generic stock"
     },
     "Roblox": {
-      scene: "renkli neşeli gaming setup bloklu estetik unsurlarla, canlı gaming istasyonu, aile dostu gaming ortamı, modern renkli çevre birimleri",
-      style: "parlak modern ürün fotoğrafçılığı, neşeli reklam tarzı, temiz ve canlı, profesyonel stüdyo",
-      lighting: "parlak eşit stüdyo aydınlatması, neşeli sıcak ışık, profesyonel ürün fotoğrafçılığı aydınlatması",
-      colors: "canlı gökkuşağı vurguları, neşeli parlak renkler, temiz beyazlar, oyuncu renkli unsurlar",
-      composition: "temiz merkezi kompozisyon, samimi yaklaşılabilir açı, premium tüketici ürünü tarzı",
-      negativePrompt: "karanlık, korkutucu, korku, düşük kalite, bulanık, filigran, yazı, insanlar, dağınık, kalabalık"
+      scene: "Roblox metaverse environment, blocky voxel world, colorful game portal, avatar showcase scene, creative building blocks atmosphere, popular Roblox game world, playful virtual space",
+      style: "clean 3D render, stylized game art, vibrant polished visuals, family-friendly premium aesthetic, modern game icon style, sharp colorful presentation",
+      lighting: "bright cheerful lighting, soft ambient glow, playful highlights, clean studio-like lighting for characters, welcoming atmosphere",
+      colors: "vibrant Roblox red accents, cheerful rainbow colors, bright blues and greens, playful warm tones, clean white highlights, inviting palette",
+      composition: "character or world focal point, clean centered composition, playful dynamic pose, uncluttered background, app icon quality presentation",
+      negativePrompt: "gaming chair, desk, computer, room interior, office, furniture, realistic human, photo background, messy room, cartoon drawing, anime, watermark overload, text overlay, huge text, fake banner, UI elements, cluttered, dark scary, horror, low quality, blurry"
     },
     "PVP Serverlar": {
-      scene: "destansı fantezi savaş alanı atmosferi, ortaçağ zırh ve silahlar, mistik gaming diyarı, MMORPG ilhamlı epik manzara, efsanevi savaşçı ekipmanları",
-      style: "epik fantezi reklam fotoğrafçılığı, oyun sinematik tarzı, efsanevi atmosfer, premium kalite",
-      lighting: "dramatik epik aydınlatma altın saat tonlarında, mistik sis efektleri, sinematik hacimsel aydınlatma",
-      colors: "epik altınlar, mistik maviler, antik bronz, efsanevi gümüş, karanlık fantezi tonları",
-      composition: "epik kahraman kompozisyonu, efsanevi eşya vitrini, dramatik perspektif, premium oyun varlığı tarzı",
-      negativePrompt: "modern teknoloji, bilim kurgu, fütüristik, düşük kalite, bulanık, cartoon, anime, gerçekçi insanlar, filigran"
+      scene: "Metin2 or Knight Online epic battlefield, medieval fantasy realm, warrior armor and ancient weapons, dragon or mythical creature silhouette, ancient temple ruins, mystical oriental landscape, legendary combat scenario",
+      style: "epic fantasy illustration, MMORPG loading screen quality, cinematic fantasy art, highly detailed armor and weapons, premium game cinematic",
+      lighting: "dramatic golden hour lighting, mystical fog effects, volumetric god rays, epic sunset atmosphere, magical ambient glow, cinematic shadows",
+      colors: "epic golden yellows and oranges, mystical blues and purples, ancient bronze and steel, rich earth tones, fantasy magical accents, dramatic contrast",
+      composition: "legendary warrior or equipment focal point, epic scale environment, dramatic heroic angle, environmental depth, MMORPG key art composition",
+      negativePrompt: "gaming chair, modern desk, computer, RGB lights, room interior, office, furniture, modern technology, sci-fi, futuristic, cartoon, anime, realistic human portrait, watermark overload, text overlay, huge text, fake banner, UI mockup, cluttered, low quality, blurry"
     },
     "PUBG Mobile": {
-      scene: "battle royale gaming setup askeri taktik estetikle, çöl savaş ortamı, hayatta kalma gaming ekipmanı, profesyonel mobil gaming istasyonu",
-      style: "taktik gaming fotoğrafçılığı, askeri-sınıf ürün vitrini, hayatta kalma oyun atmosferi, premium kalite",
-      lighting: "dramatik çöl aydınlatması, altın saat askeri atmosferi, sinematik savaş aydınlatması",
-      colors: "çöl bejleri, askeri yeşiller, taktik griler, tozlu kahverengiler, hayatta kalma turuncu vurgular",
-      composition: "taktik ürün kompozisyonu, hayatta kalma ekipman düzeni, dramatik askeri açı",
-      negativePrompt: "cartoon, anime, fütüristik bilim kurgu, düşük kalite, bulanık, filigran, yazı, dağınık, renkli"
+      scene: "Erangel or Miramar battlefield, airdrop crate falling, chicken dinner victory atmosphere, tactical combat zone, military gear and weapons, battle royale closing circle tension, survival last-stand scenario",
+      style: "realistic military digital art, PUBG cinematic trailer quality, gritty combat atmosphere, photorealistic equipment, premium battle royale cover art",
+      lighting: "dramatic combat lighting, golden hour military atmosphere, explosion or muzzle flash illumination, cinematic war zone lighting, dust and atmosphere",
+      colors: "military olive drab and brown, tactical grays, desert tan, blood orange accents, smoke grays, dramatic desaturated palette with color pops",
+      composition: "tactical equipment or character focal point, battlefield depth, dynamic action angle, professional shooter game cover composition, uncluttered focus",
+      negativePrompt: "gaming chair, desk setup, room interior, office, furniture, keyboard, mouse, monitor, RGB lights, cartoon, anime, futuristic sci-fi, watermark overload, text overlay, huge text, slogan, fake banner, UI elements, fake product card, cluttered, messy, low quality, blurry"
     },
     "default": {
-      scene: "premium profesyonel gaming setup, yüksek son teknoloji ortam, modern gaming istasyonu profesyonel aydınlatmayla",
-      style: "profesyonel reklam fotoğrafçılığı, premium teknoloji ürün vitrini, ultra-detaylı, 8K kalite",
-      lighting: "profesyonel stüdyo aydınlatması, yumuşak diffüz ışık, ince rim aydınlatma, premium ürün fotoğrafçılığı",
-      colors: "profesyonel griler, premium siyahlar, ince vurgu aydınlatma, temiz modern palet",
-      composition: "profesyonel ürün fotoğrafçılığı kompozisyonu, merkezde kahraman çekimi, sığ alan derinliği",
-      negativePrompt: "düşük kalite, bulanık, cartoon, anime, filigran, yazı, insanlar, distorsiyon, çirkin, amatör"
+      scene: "premium gaming atmosphere, abstract high-tech gaming environment, digital marketplace energy, professional gaming world portal, sleek virtual space, modern digital commerce aesthetic",
+      style: "premium digital art, sleek modern commercial aesthetic, ultra-clean composition, professional marketplace visual, sharp high-end digital render",
+      lighting: "professional studio lighting, clean dramatic highlights, premium product photography lighting, sleek modern ambiance, polished glow effects",
+      colors: "sleek blacks and dark grays, premium accent colors, clean metallic tones, modern minimalist palette, professional dark theme with highlights",
+      composition: "clean centered focal point, professional product showcase, minimalist premium composition, uncluttered elegant layout, marketplace hero shot",
+      negativePrompt: "gaming chair, desk, computer setup, room interior, office, furniture, cluttered background, messy room, cartoon, anime, watermark overload, text overlay, huge text, fake banner, fake UI, buttons, labels, busy layout, low quality, blurry, amateur, generic stock photo"
     }
   };
 
@@ -152,7 +152,7 @@ export class ListingVisualDirector {
     const keyElements = this.extractKeywords(title, description);
     
     // Görsel stili
-    let visualStyle = data.style || "premium";
+    let visualStyle: string = data.style || "premium";
     if (category === "PVP Serverlar") visualStyle = "epic fantasy";
     if (category === "Roblox") visualStyle = "colorful playful";
     
