@@ -379,7 +379,7 @@ const isPlaceholderBotImage = (image?: string | null) => {
 };
 
 const refreshBotHistoryImagesOnce = () => {
-  // Clear flag to force refresh with new image system
+  // Force refresh - clear flag every time to ensure images are updated
   localStorage.removeItem(BOT_IMAGE_REFRESH_FLAG);
   
   const history = safeJSONParse<BotListing[]>(localStorage.getItem(BOT_HISTORY_KEY), []);
@@ -388,10 +388,10 @@ const refreshBotHistoryImagesOnce = () => {
     return;
   }
 
-  // Update all bot listings with category-specific images
+  // Update ALL bot listings with category-specific images (force update)
   const updated = history.map((listing) => {
     if (!listing) return listing;
-    // Always update with new category-specific image system
+    // Always assign new category-specific image
     return {
       ...listing,
       image: getCategorySpecificImage(listing.category, listing.id),
@@ -408,8 +408,23 @@ export const getBotNamePoolStats = (): BotNamePoolStats => { const usedNames = g
 export const getBotStats = (): BotStats => { const today = new Date().toLocaleDateString(); const stats = safeJSONParse<BotStats | null>(localStorage.getItem(BOT_STATS_KEY), null); if (!stats) return { totalListings: 148, todayListings: 24, lastUpdate: today }; if (stats.lastUpdate !== today) { const refreshed = { ...stats, todayListings: 0, lastUpdate: today }; localStorage.setItem(BOT_STATS_KEY, JSON.stringify(refreshed)); return refreshed; } return stats; };
 const incrementBotStats = () => { const stats = getBotStats(); localStorage.setItem(BOT_STATS_KEY, JSON.stringify({ totalListings: stats.totalListings + 1, todayListings: stats.todayListings + 1, lastUpdate: new Date().toLocaleDateString() })); };
 export const getBotHistory = (): BotListing[] => {
-  refreshBotHistoryImagesOnce();
-  return safeJSONParse<BotListing[]>(localStorage.getItem(BOT_HISTORY_KEY), []);
+  // Always refresh images before returning
+  const history = safeJSONParse<BotListing[]>(localStorage.getItem(BOT_HISTORY_KEY), []);
+  
+  if (history.length > 0) {
+    // Force update all images with new system
+    const updated = history.map((listing) => {
+      if (!listing) return listing;
+      return {
+        ...listing,
+        image: getCategorySpecificImage(listing.category, listing.id),
+      };
+    });
+    localStorage.setItem(BOT_HISTORY_KEY, JSON.stringify(updated));
+    return updated;
+  }
+  
+  return history;
 };
 export const getBotListingById = (listingId?: string | null) => listingId ? getBotHistory().find((listing) => listing.id === listingId) || null : null;
 export const isBotListingLocked = (listingId?: string | number | null) => { if (!listingId) return false; const normalizedId = String(listingId); if (normalizedId.startsWith("BOT-")) return true; const listing = getBotListingById(normalizedId); return Boolean(listing?.isBot || listing?.isPurchasable === false); };
