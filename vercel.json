@@ -6,7 +6,7 @@
   "devCommand": "npm run dev",
   "rewrites": [
     {
-      "source": "/((?!assets/|favicon.ico|robots.txt|sitemap.xml).*)",
+      "source": "/((?!assets/|api/|favicon.ico|robots.txt|sitemap.xml).*)",
       "destination": "/index.html"
     }
   ],

@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { supabase } from "@/lib/supabase";
 import { AUTH_CHANGED_EVENT, getCurrentUser } from "@/lib/auth";
+import { startPaytrDeposit } from "@/lib/payment";
 
 const amounts = [50, 100, 250, 500, 1000, 2500];
 
@@ -104,31 +105,85 @@ const Deposit = () => {
     }
 
     setSubmitting(true);
-    
-    // Yeni bakiyeyi hesapla
-    const currentBalance = Number(profile.balance || 0);
-    const newBalance = currentBalance + resolvedAmount;
-    
-    // Supabase'de bakiyeyi güncelle
-    const { error } = await supabase
-      .from("profiles")
-      .update({ balance: newBalance })
-      .eq("id", appUser.id);
 
-    if (error) {
+    try {
+      if (method === "card" || method === "papara") {
+        const payMethod = method === "papara" ? "papara" : "card";
+        const result = await startPaytrDeposit(resolvedAmount, payMethod);
+        if (!result.ok) {
+          if (result.configured === false) {
+            toast.error("Ödeme altyapısı yapılandırılmamış.", {
+              description: "Vercel ortam değişkenlerinde PayTR ve Supabase anahtarlarını tanımlayın.",
+            });
+          } else {
+            toast.error(result.error || "Ödeme başlatılamadı.");
+          }
+          return;
+        }
+        toast.message("Güvenli ödeme sayfasına yönlendiriliyorsunuz…");
+        window.location.assign(result.payUrl);
+        return;
+      }
+
+      if (method === "bank") {
+        const iban = import.meta.env.VITE_BANK_IBAN?.trim();
+        const recipient = import.meta.env.VITE_BANK_ACCOUNT_NAME?.trim() || "ItemTR";
+        if (!iban) {
+          toast.error("Havale bilgileri tanımlı değil.", {
+            description: "Yönetici: VITE_BANK_IBAN ve isteğe bağlı VITE_BANK_ACCOUNT_NAME ayarlayın.",
+          });
+          return;
+        }
+
+        const { data: pending, error: insErr } = await supabase
+          .from("payments")
+          .insert({
+            user_id: appUser.id,
+            amount: resolvedAmount,
+            currency: "TRY",
+            status: "pending",
+            payment_type: "deposit",
+            description: "Havale / EFT — bakiye yükleme",
+            metadata: {
+              method: "bank",
+              awaiting_transfer: true,
+              recipient,
+              iban,
+            },
+          })
+          .select("id")
+          .single();
+
+        if (insErr || !pending?.id) {
+          toast.error("Havale talebi kaydedilemedi.");
+          return;
+        }
+
+        toast.success("Havale talimatları", {
+          description: `Alıcı: ${recipient} | IBAN: ${iban} | Açıklama: ${pending.id} (mutlaka yazın) | Tutar: ₺${resolvedAmount.toFixed(2)}`,
+          duration: 25_000,
+        });
+        return;
+      }
+
+      if (import.meta.env.VITE_ALLOW_SIMULATED_BALANCE === "true") {
+        const currentBal = Number(profile.balance || 0);
+        const newBalance = currentBal + resolvedAmount;
+        const { error } = await supabase.from("profiles").update({ balance: newBalance }).eq("id", appUser.id);
+        if (error) {
+          toast.error("Bakiye yüklenemedi.");
+          return;
+        }
+        setCurrentBalance(newBalance);
+        window.dispatchEvent(new Event(AUTH_CHANGED_EVENT));
+        toast.success(`(Test) ₺${resolvedAmount.toFixed(2)} simüle edildi.`);
+        return;
+      }
+
+      toast.error("Bu ödeme yöntemi henüz etkin değil.");
+    } finally {
       setSubmitting(false);
-      toast.error("Bakiye yüklenemedi.");
-      return;
     }
-
-    setCurrentBalance(newBalance);
-    setSubmitting(false);
-
-    window.dispatchEvent(new Event(AUTH_CHANGED_EVENT));
-
-    toast.success(`₺${resolvedAmount.toFixed(2)} bakiye hesabına yüklendi.`, {
-      description: `${methods.find((item) => item.id === method)?.label || "Ödeme"} tamamlandı.`,
-    });
   };
 
   return (

@@ -40,6 +40,7 @@ import Vitrin from "./pages/Vitrin.tsx";
 import PvpServers from "./pages/PvpServers.tsx";
 import About from "./pages/About.tsx";
 import Contact from "./pages/Contact.tsx";
+import PaymentResult from "./pages/PaymentResult.tsx";
 
 const queryClient = new QueryClient();
 
@@ -207,6 +208,8 @@ const App = () => (
             <Route path="/pvp-serverlar" element={<PvpServers />} />
             <Route path="/about" element={<About />} />
             <Route path="/contact" element={<Contact />} />
+            <Route path="/payment/success" element={<PaymentResult variant="success" />} />
+            <Route path="/payment/fail" element={<PaymentResult variant="fail" />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </BrowserRouter>
