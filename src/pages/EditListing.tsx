@@ -14,6 +14,7 @@ import { ChevronLeft, CheckCircle2, ShoppingBag, ShoppingCart, Zap, Server, Load
 import { toast } from "sonner";
 import { type ListingSection } from "@/lib/marketplace";
 import { supabase } from "@/lib/supabase";
+import { getCurrentUser } from "@/lib/auth";
 
 const STANDARD_CATEGORIES = [
   "Oyun Hesapları",
@@ -60,18 +61,18 @@ const EditListing = () => {
       }
 
       try {
-        const { data: { user } } = await supabase.auth.getUser();
-        if (!user) {
+        const appUser = await getCurrentUser();
+        if (!appUser) {
           toast.error("Oturumunuz sonlanmış");
           navigate("/login");
           return;
         }
 
         const { data: listing, error } = await supabase
-          .from('listings')
-          .select('*')
-          .eq('id', id)
-          .eq('seller_id', user.id)
+          .from("listings")
+          .select("*")
+          .eq("id", id)
+          .eq("seller_id", appUser.id)
           .single();
 
         if (error || !listing) {
@@ -112,15 +113,15 @@ const EditListing = () => {
     setSaving(true);
 
     try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) {
+      const appUser = await getCurrentUser();
+      if (!appUser) {
         toast.error("Oturumunuz sonlanmış.");
         navigate("/login");
         return;
       }
 
       const { error } = await supabase
-        .from('listings')
+        .from("listings")
         .update({
           title: formData.title,
           category: formData.category,
@@ -133,7 +134,7 @@ const EditListing = () => {
           updated_at: new Date().toISOString(),
         })
         .eq('id', id)
-        .eq('seller_id', user.id);
+        .eq("seller_id", appUser.id);
 
       if (error) {
         console.error("[EditListing] Update error:", error);

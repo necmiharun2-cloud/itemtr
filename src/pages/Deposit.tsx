@@ -8,7 +8,7 @@ import { Wallet, CreditCard, Building2, Smartphone, Shield, Clock, CheckCircle2,
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { supabase } from "@/lib/supabase";
-import { getCurrentUser, updateCurrentUser, rewardCurrentUser } from "@/lib/auth";
+import { AUTH_CHANGED_EVENT, getCurrentUser } from "@/lib/auth";
 
 const amounts = [50, 100, 250, 500, 1000, 2500];
 
@@ -27,26 +27,31 @@ const Deposit = () => {
   const [method, setMethod] = useState("card");
   const [submitting, setSubmitting] = useState(false);
 
-  // Güvenli bakiye senkronizasyonu - her zaman Supabase'den güncel veri çek
+  // Header ile aynı kaynak: getCurrentUser (getSession + yerel oturum). Yalnızca getUser() kullanmak
+  // bazen null döner; kullanıcı giriş yapmış görünürken "giriş yapın" hatasına yol açar.
   const syncBalance = useCallback(async () => {
     try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (user) {
-        const { data: profile } = await supabase
-          .from('profiles')
-          .select('balance, id, username, name')
-          .eq('id', user.id)
-          .single();
-        
-        if (profile) {
-          setCurrentBalance(Number(profile.balance || 0));
-          setCurrentUser({ ...user, ...profile });
-          return;
-        }
+      const appUser = await getCurrentUser();
+      if (!appUser) {
+        setCurrentBalance(0);
+        setCurrentUser(null);
+        return;
       }
-      // Kullanıcı yoksa veya hata varsa 0 göster
-      setCurrentBalance(0);
-      setCurrentUser(null);
+
+      const { data: profile } = await supabase
+        .from("profiles")
+        .select("balance, id, username, name")
+        .eq("id", appUser.id)
+        .maybeSingle();
+
+      if (profile) {
+        setCurrentBalance(Number(profile.balance ?? appUser.balance ?? 0));
+        setCurrentUser({ ...appUser, ...profile });
+        return;
+      }
+
+      setCurrentBalance(Number(appUser.balance ?? 0));
+      setCurrentUser(appUser);
     } catch (error) {
       console.error("[Deposit] Balance sync error:", error);
       setCurrentBalance(0);
@@ -56,14 +61,18 @@ const Deposit = () => {
 
   useEffect(() => {
     syncBalance();
-    // Geri tuşu ile dönüldüğünde tekrar senkronize et
     const handleVisibilityChange = () => {
-      if (document.visibilityState === 'visible') {
-        syncBalance();
+      if (document.visibilityState === "visible") {
+        void syncBalance();
       }
     };
-    window.addEventListener('visibilitychange', handleVisibilityChange);
-    return () => window.removeEventListener('visibilitychange', handleVisibilityChange);
+    const onAuthChanged = () => void syncBalance();
+    window.addEventListener("visibilitychange", handleVisibilityChange);
+    window.addEventListener(AUTH_CHANGED_EVENT, onAuthChanged);
+    return () => {
+      window.removeEventListener("visibilitychange", handleVisibilityChange);
+      window.removeEventListener(AUTH_CHANGED_EVENT, onAuthChanged);
+    };
   }, [syncBalance]);
 
   const resolvedAmount = useMemo(() => {
@@ -72,21 +81,20 @@ const Deposit = () => {
   }, [amount, custom]);
 
   const handleDeposit = async () => {
-    // Her zaman Supabase'den güncel kullanıcı verisini çek
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) {
+    const appUser = await getCurrentUser();
+    if (!appUser) {
       toast.error("Bakiye yüklemek için giriş yapmalısın.");
       return;
     }
 
     const { data: profile } = await supabase
-      .from('profiles')
-      .select('balance, id')
-      .eq('id', user.id)
-      .single();
+      .from("profiles")
+      .select("balance, id")
+      .eq("id", appUser.id)
+      .maybeSingle();
 
     if (!profile) {
-      toast.error("Kullanıcı profili bulunamadı.");
+      toast.error("Kullanıcı profili bulunamadı. Birkaç saniye sonra tekrar deneyin veya sayfayı yenileyin.");
       return;
     }
 
@@ -103,9 +111,9 @@ const Deposit = () => {
     
     // Supabase'de bakiyeyi güncelle
     const { error } = await supabase
-      .from('profiles')
+      .from("profiles")
       .update({ balance: newBalance })
-      .eq('id', user.id);
+      .eq("id", appUser.id);
 
     if (error) {
       setSubmitting(false);
@@ -115,7 +123,9 @@ const Deposit = () => {
 
     setCurrentBalance(newBalance);
     setSubmitting(false);
-    
+
+    window.dispatchEvent(new Event(AUTH_CHANGED_EVENT));
+
     toast.success(`₺${resolvedAmount.toFixed(2)} bakiye hesabına yüklendi.`, {
       description: `${methods.find((item) => item.id === method)?.label || "Ödeme"} tamamlandı.`,
     });

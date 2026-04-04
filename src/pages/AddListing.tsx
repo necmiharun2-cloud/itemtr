@@ -76,31 +76,22 @@ const AddListing = () => {
     setIsSubmitting(true);
 
     try {
-      // Get current user from Supabase
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) {
+      const appUser = await getCurrentUser();
+      if (!appUser) {
         toast.error("Oturumunuz sonlanmış. Lütfen tekrar giriş yapın.");
         navigate("/login");
         return;
       }
 
-      // Get user profile for username
-      const { data: profile } = await supabase
-        .from('profiles')
-        .select('username')
-        .eq('id', user.id)
-        .single();
-
-      // Create listing in Supabase
       const { data: listing, error } = await supabase
-        .from('listings')
+        .from("listings")
         .insert({
           title: formData.title,
           category: formData.category,
           game: formData.game,
           description: formData.description,
           price: Number(formData.price),
-          seller_id: user.id,
+          seller_id: appUser.id,
           status: 'active',
           section: listingArea,
           is_auto_delivery: !isPvpArea && formData.deliveryType === "auto",
@@ -121,16 +112,12 @@ const AddListing = () => {
         return;
       }
 
-      // Reward user for first listing
-      const currentUser = await getCurrentUser();
-      if (currentUser) {
-        const reward = await rewardCurrentUser("first_listing");
-        toast.success(`${isPvpArea ? "PVP server tanıtımınız" : listingType === "sale" ? "İlanınız" : "Alım ilanınız"} başarıyla oluşturuldu!`, {
-          description: reward.awardedXp > 0
-            ? `+${reward.awardedXp} TP kazandınız. ${isPvpArea ? "PVP Serverlar alanında ve ana sayfadaki PVP bölümünde gösterilecektir." : "Yeni ilanlar alanında yayına alınacaktır."}`
-            : isPvpArea ? "PVP Serverlar alanında ve ana sayfadaki PVP bölümünde gösterilecektir." : "Yeni ilanlar alanında yayına alınacaktır.",
-        });
-      }
+      const reward = await rewardCurrentUser("first_listing");
+      toast.success(`${isPvpArea ? "PVP server tanıtımınız" : listingType === "sale" ? "İlanınız" : "Alım ilanınız"} başarıyla oluşturuldu!`, {
+        description: reward.awardedXp > 0
+          ? `+${reward.awardedXp} TP kazandınız. ${isPvpArea ? "PVP Serverlar alanında ve ana sayfadaki PVP bölümünde gösterilecektir." : "Yeni ilanlar alanında yayına alınacaktır."}`
+          : isPvpArea ? "PVP Serverlar alanında ve ana sayfadaki PVP bölümünde gösterilecektir." : "Yeni ilanlar alanında yayına alınacaktır.",
+      });
 
       navigate(`/listing/${listing.id}`);
     } catch (error) {
