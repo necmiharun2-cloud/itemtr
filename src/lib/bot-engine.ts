@@ -96,7 +96,7 @@ const getSearchQueryForListing = (category: string, title: string) => {
   return `${category} gaming hd`.slice(0, 50);
 };
 
-const watermarkImage = async (imageUrl: string, text: string): Promise<string> => {
+const watermarkImage = async (imageUrl: string): Promise<string> => {
   return new Promise((resolve) => {
     const img = new Image();
     img.crossOrigin = "anonymous";
@@ -108,63 +108,21 @@ const watermarkImage = async (imageUrl: string, text: string): Promise<string> =
         return;
       }
 
-      // Set canvas size to match image or use a fixed HD resolution
       canvas.width = img.width;
       canvas.height = img.height;
 
-      // Draw the original image
+      // Draw original image
       ctx.drawImage(img, 0, 0);
 
-      // Stilize edilmiş filigran ekleme
-      const fontSize = Math.floor(canvas.height * 0.08);
-      ctx.font = `italic bold ${fontSize}px "Inter", sans-serif`;
-      ctx.textAlign = "center";
-      ctx.textBaseline = "middle";
-
-      // Metin için cam efekti (glassmorphism) arka planı
-      const displayText = text.toUpperCase();
-      const textMetrics = ctx.measureText(displayText);
-      const paddingX = 50;
-      const paddingY = 25;
-      const rectWidth = textMetrics.width + paddingX * 2;
-      const rectHeight = fontSize + paddingY * 2;
+      // Small subtle watermark in corner
+      const fontSize = Math.floor(canvas.height * 0.025); // Very small, 2.5% of height
+      ctx.font = `500 ${fontSize}px sans-serif`;
+      ctx.textAlign = "right";
+      ctx.textBaseline = "bottom";
       
-      const rx = (canvas.width - rectWidth) / 2;
-      const ry = (canvas.height - rectHeight) / 2;
-      const radius = 20;
-      
-      ctx.beginPath();
-      ctx.moveTo(rx + radius, ry);
-      ctx.lineTo(rx + rectWidth - radius, ry);
-      ctx.quadraticCurveTo(rx + rectWidth, ry, rx + rectWidth, ry + radius);
-      ctx.lineTo(rx + rectWidth, ry + rectHeight - radius);
-      ctx.quadraticCurveTo(rx + rectWidth, ry + rectHeight, rx + rectWidth - radius, ry + rectHeight);
-      ctx.lineTo(rx + radius, ry + rectHeight);
-      ctx.quadraticCurveTo(rx, ry + rectHeight, rx, ry + rectHeight - radius);
-      ctx.lineTo(rx, ry + radius);
-      ctx.quadraticCurveTo(rx, ry, rx + radius, ry);
-      ctx.closePath();
-      
-      // Çok katmanlı arka plan (Cam efekti için)
-      ctx.fillStyle = "rgba(0, 0, 0, 0.75)"; 
-      ctx.fill();
-      
-      // Işıltılı kenarlık
-      ctx.strokeStyle = "rgba(255, 255, 255, 0.3)";
-      ctx.lineWidth = 3;
-      ctx.stroke();
-
-      // Metni gölgeli ve parlak sarı olarak çiz (ItemTR Marka Rengi)
-      ctx.shadowColor = "rgba(0, 0, 0, 1)";
-      ctx.shadowBlur = 15;
-      ctx.fillStyle = "#FACC15"; 
-      ctx.fillText(displayText, canvas.width / 2, canvas.height / 2 - 10);
-
-      // İkincil "YAPAY ZEKA" ibaresi
-      ctx.shadowBlur = 0;
-      ctx.font = `bold ${Math.floor(fontSize * 0.35)}px sans-serif`;
-      ctx.fillStyle = "rgba(255, 255, 255, 0.9)";
-      ctx.fillText("ITEMTR.COM - HD YAPAY ZEKA", canvas.width / 2, (canvas.height + rectHeight) / 2 - 35);
+      // Subtle semi-transparent watermark
+      ctx.fillStyle = "rgba(255, 255, 255, 0.4)";
+      ctx.fillText("ITEMTR.COM", canvas.width - 20, canvas.height - 15);
 
       resolve(canvas.toDataURL("image/jpeg", 0.9));
     };
@@ -195,7 +153,7 @@ const getHdImageForListing = async (category: string, title: string, listingId: 
   const imageUrl = `https://image.pollinations.ai/prompt/${encodeURIComponent(professionalPrompt)}?width=1280&height=720&nologo=true&seed=${seed}`;
   
   try {
-    const watermarkedUrl = await watermarkImage(imageUrl, category);
+    const watermarkedUrl = await watermarkImage(imageUrl);
     cache[cacheKey] = watermarkedUrl;
     setBotImageCache(cache);
     return watermarkedUrl;
