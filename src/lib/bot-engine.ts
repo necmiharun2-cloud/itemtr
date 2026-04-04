@@ -302,6 +302,72 @@ const getUserTags = () => {
   return parsedTags.length > 0 ? parsedTags : DEFAULT_BOT_TAGS;
 };
 
+// Category + Game specific image collections
+const CATEGORY_IMAGES: Record<string, string[]> = {
+  "CS2": [
+    "https://images.unsplash.com/photo-1542751371-adc38448a05e?w=800&auto=format&fit=crop&q=80",
+    "https://images.unsplash.com/photo-1538481199705-c710c4e965fc?w=800&auto=format&fit=crop&q=80",
+    "https://images.unsplash.com/photo-1511512578047-dfb367046420?w=800&auto=format&fit=crop&q=80",
+    "https://images.unsplash.com/photo-1550745165-9bc0b252726f?w=800&auto=format&fit=crop&q=80",
+    "https://images.unsplash.com/photo-1614027164847-1b28cfe1df60?w=800&auto=format&fit=crop&q=80",
+    "https://images.unsplash.com/photo-1593305841991-05c297ba4575?w=800&auto=format&fit=crop&q=80",
+  ],
+  "Valorant": [
+    "https://images.unsplash.com/photo-1542751371-adc38448a05e?w=800&auto=format&fit=crop&q=80",
+    "https://images.unsplash.com/photo-1538481199705-c710c4e965fc?w=800&auto=format&fit=crop&q=80",
+    "https://images.unsplash.com/photo-1552820728-8b83bb6b2b0a?w=800&auto=format&fit=crop&q=80",
+    "https://images.unsplash.com/photo-1612287230217-969b698c8d13?w=800&auto=format&fit=crop&q=80",
+    "https://images.unsplash.com/photo-1595769816263-9b910be24d5f?w=800&auto=format&fit=crop&q=80",
+    "https://images.unsplash.com/photo-1511512578047-dfb367046420?w=800&auto=format&fit=crop&q=80",
+  ],
+  "League of Legends": [
+    "https://images.unsplash.com/photo-1542751371-adc38448a05e?w=800&auto=format&fit=crop&q=80",
+    "https://images.unsplash.com/photo-1612287230217-969b698c8d13?w=800&auto=format&fit=crop&q=80",
+    "https://images.unsplash.com/photo-1593305841991-05c297ba4575?w=800&auto=format&fit=crop&q=80",
+    "https://images.unsplash.com/photo-1550745165-9bc0b252726f?w=800&auto=format&fit=crop&q=80",
+    "https://images.unsplash.com/photo-1614027164847-1b28cfe1df60?w=800&auto=format&fit=crop&q=80",
+  ],
+  "Roblox": [
+    "https://images.unsplash.com/photo-1612287230217-969b698c8d13?w=800&auto=format&fit=crop&q=80",
+    "https://images.unsplash.com/photo-1550745165-9bc0b252726f?w=800&auto=format&fit=crop&q=80",
+    "https://images.unsplash.com/photo-1593305841991-05c297ba4575?w=800&auto=format&fit=crop&q=80",
+    "https://images.unsplash.com/photo-1614027164847-1b28cfe1df60?w=800&auto=format&fit=crop&q=80",
+  ],
+  "PVP Serverlar": [
+    "https://images.unsplash.com/photo-1542751371-adc38448a05e?w=800&auto=format&fit=crop&q=80",
+    "https://images.unsplash.com/photo-1511512578047-dfb367046420?w=800&auto=format&fit=crop&q=80",
+    "https://images.unsplash.com/photo-1538481199705-c710c4e965fc?w=800&auto=format&fit=crop&q=80",
+    "https://images.unsplash.com/photo-1552820728-8b83bb6b2b0a?w=800&auto=format&fit=crop&q=80",
+    "https://images.unsplash.com/photo-1595769816263-9b910be24d5f?w=800&auto=format&fit=crop&q=80",
+    "https://images.unsplash.com/photo-1612287230217-969b698c8d13?w=800&auto=format&fit=crop&q=80",
+    "https://images.unsplash.com/photo-1550745165-9bc0b252726f?w=800&auto=format&fit=crop&q=80",
+    "https://images.unsplash.com/photo-1614027164847-1b28cfe1df60?w=800&auto=format&fit=crop&q=80",
+  ],
+  "PUBG Mobile": [
+    "https://images.unsplash.com/photo-1542751371-adc38448a05e?w=800&auto=format&fit=crop&q=80",
+    "https://images.unsplash.com/photo-1511512578047-dfb367046420?w=800&auto=format&fit=crop&q=80",
+    "https://images.unsplash.com/photo-1538481199705-c710c4e965fc?w=800&auto=format&fit=crop&q=80",
+    "https://images.unsplash.com/photo-1552820728-8b83bb6b2b0a?w=800&auto=format&fit=crop&q=80",
+    "https://images.unsplash.com/photo-1595769816263-9b910be24d5f?w=800&auto=format&fit=crop&q=80",
+  ],
+  "default": [
+    "https://images.unsplash.com/photo-1542751371-adc38448a05e?w=800&auto=format&fit=crop&q=80",
+    "https://images.unsplash.com/photo-1612287230217-969b698c8d13?w=800&auto=format&fit=crop&q=80",
+    "https://images.unsplash.com/photo-1550745165-9bc0b252726f?w=800&auto=format&fit=crop&q=80",
+    "https://images.unsplash.com/photo-1511512578047-dfb367046420?w=800&auto=format&fit=crop&q=80",
+    "https://images.unsplash.com/photo-1593305841991-05c297ba4575?w=800&auto=format&fit=crop&q=80",
+  ]
+};
+
+// Get a random image for a listing based on category - each listing gets unique image
+const getCategorySpecificImage = (category: string, listingId: string): string => {
+  const images = CATEGORY_IMAGES[category] || CATEGORY_IMAGES["default"];
+  // Use listingId to ensure same listing always gets same image, but different listings get different images
+  const hash = listingId.split("").reduce((acc, char) => acc + char.charCodeAt(0), 0);
+  const index = hash % images.length;
+  return images[index];
+};
+
 const isPlaceholderBotImage = (image?: string | null) => {
   const value = String(image || "").trim();
   if (!value) return true;
@@ -315,25 +381,30 @@ const isPlaceholderBotImage = (image?: string | null) => {
 };
 
 const refreshBotHistoryImagesOnce = () => {
-  if (localStorage.getItem(BOT_IMAGE_REFRESH_FLAG) === "true") return;
-
+  // Clear flag to force refresh with new image system
+  localStorage.removeItem(BOT_IMAGE_REFRESH_FLAG);
+  
   const history = safeJSONParse<BotListing[]>(localStorage.getItem(BOT_HISTORY_KEY), []);
   if (!Array.isArray(history) || history.length === 0) {
     localStorage.setItem(BOT_IMAGE_REFRESH_FLAG, "true");
     return;
   }
 
+  // Update all bot listings with category-specific images
   const updated = history.map((listing) => {
     if (!listing) return listing;
-    if (!isPlaceholderBotImage(listing.image)) return listing;
+    // Always update with new category-specific image system
     return {
       ...listing,
-      image: getHdImageForListing(listing.category, listing.title),
+      image: getCategorySpecificImage(listing.category, listing.id),
     };
   });
 
   localStorage.setItem(BOT_HISTORY_KEY, JSON.stringify(updated));
   localStorage.setItem(BOT_IMAGE_REFRESH_FLAG, "true");
+  
+  // Dispatch event to refresh UI
+  window.dispatchEvent(new CustomEvent("itemtr-marketplace-updated"));
 };
 export const getBotNamePoolStats = (): BotNamePoolStats => { const usedNames = getUsedBotNames().length; return { totalNames: BOT_NAME_POOL.length, usedNames, remainingNames: Math.max(BOT_NAME_POOL.length - usedNames, 0) }; };
 export const getBotStats = (): BotStats => { const today = new Date().toLocaleDateString(); const stats = safeJSONParse<BotStats | null>(localStorage.getItem(BOT_STATS_KEY), null); if (!stats) return { totalListings: 148, todayListings: 24, lastUpdate: today }; if (stats.lastUpdate !== today) { const refreshed = { ...stats, todayListings: 0, lastUpdate: today }; localStorage.setItem(BOT_STATS_KEY, JSON.stringify(refreshed)); return refreshed; } return stats; };
@@ -455,6 +526,9 @@ const CUSTOM_IMAGES = [
 
   const history = getBotHistory(); 
   
+  // Generate unique listing ID first
+  const listingId = `BOT-${Math.random().toString(36).slice(2, 7).toUpperCase()}`;
+  
   // Scarcity logic: 25% chance to be a showcased (vitrin) listing
   const shouldBeVitrin = categoryPool !== "PVP Serverlar" && Math.random() < 0.25;
   
@@ -468,11 +542,11 @@ const CUSTOM_IMAGES = [
   // Random seller experience 0-6 (for 7 tier levels)
   const sellerExp = Math.floor(Math.random() * 7);
   
-  // HD image per category/title (cached). Allow manual override via admin setting.
-  const finalImage = customImage || getHdImageForListing(categoryPool, title);
+  // Category-specific image based on listing ID (ensures unique image per listing)
+  const finalImage = customImage || getCategorySpecificImage(categoryPool, listingId);
 
   const newListing: BotListing = { 
-    id: `BOT-${Math.random().toString(36).slice(2, 7).toUpperCase()}`, 
+    id: listingId, 
     title, 
     category: categoryPool, 
     seller, 
