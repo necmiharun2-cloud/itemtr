@@ -116,7 +116,7 @@ export default async function handler(req, res) {
   const paymentAmountKurus = Math.round(amount * 100);
   const basket = JSON.stringify([["Bakiye yükleme", amount.toFixed(2), 1]]);
   const userBasket = Buffer.from(basket, "utf8").toString("base64");
-  const email = user.email || "musteri@itemtr.com";
+  const email = user.email || "musteri@itemsatis.com";
   const testMode =
     process.env.PAYTR_TEST_MODE === "1" || process.env.PAYTR_TEST_MODE === "true" ? "1" : "0";
   const origin = siteOrigin();
@@ -147,7 +147,7 @@ export default async function handler(req, res) {
   form.set("debug_on", process.env.PAYTR_DEBUG === "1" ? "1" : "0");
   form.set("no_installment", "0");
   form.set("max_installment", "0");
-  form.set("user_name", user.user_metadata?.name || user.user_metadata?.username || "ItemTR Üye");
+  form.set("user_name", user.user_metadata?.name || user.user_metadata?.username || "İtemSatış Üye");
   form.set("user_address", "Türkiye");
   form.set("user_phone", user.phone || user.user_metadata?.phone || "05000000000");
   form.set("merchant_ok_url", `${origin}/payment/success`);

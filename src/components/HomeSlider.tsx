@@ -1,13 +1,14 @@
 import { useState, useEffect, useCallback } from "react";
 import { ChevronLeft, ChevronRight, ShoppingBag } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { SITE_NAME } from "@/lib/site-brand";
 
 const slides = [
   {
     id: 1,
     image: "https://blog.roblox.com/wp-content/uploads/2023/09/RDC-2023-Blog-Header.jpg",
     title: "ROBLOX\nİLAN PAZARI",
-    description: "Roblox İlan Pazarı İtemTR'de! Hemen Al, Hemen Sat, Kazancını Katla!",
+    description: `Roblox ilan pazarı ${SITE_NAME}'te! Hemen al, hemen sat, kazancını katla.`,
     link: "/category/roblox",
     color: "from-blue-900/80 via-transparent to-transparent"
   },

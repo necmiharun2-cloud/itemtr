@@ -1,3 +1,5 @@
+import { SITE_NAME } from "@/lib/site-brand";
+
 export interface KocuceItem {
   title: string;
   url?: string;
@@ -10,18 +12,16 @@ const KOCUCE_URL = "https://www.kocuce.com/forumlar/pvpservers/";
 const PVPKENT_URL = "https://pvpkent.com/forum/pvp-server-tanitim/";
 
 /**
- * Sanitizes Kocuce/Pvpkent content by replacing competitor names with İtemTR.com
+ * Harici forum içeriğindeki üçüncü taraf markaları platform adıyla değiştirir.
  */
 export const sanitizeContent = (text: string): string => {
   if (!text) return "";
   return text
-    .replace(/kocuce/gi, "İtemTR.com")
-    .replace(/ko-cuce/gi, "İtemTR.com")
-    .replace(/ko cuce/gi, "İtemTR.com")
-    .replace(/pvpkent/gi, "İtemTR.com")
-    .replace(/pvp kent/gi, "İtemTR.com")
-    .replace(/itemsatis/gi, "İtemTR.com")
-    .replace(/itemsatış/gi, "İtemTR.com");
+    .replace(/kocuce/gi, SITE_NAME)
+    .replace(/ko-cuce/gi, SITE_NAME)
+    .replace(/ko cuce/gi, SITE_NAME)
+    .replace(/pvpkent/gi, SITE_NAME)
+    .replace(/pvp kent/gi, SITE_NAME);
 };
 
 /**
@@ -84,7 +84,7 @@ export const processKocuceHTML = (html: string): KocuceItem[] => {
         items.push({
           title,
           url: url.startsWith('http') ? url : `https://www.kocuce.com${url}`,
-          description: title + " - Bu sunucu " + sanitizeContent(dateStr) + " tarihinde İtemTR.com havuzuna dahil edilmiştir. Gerçek oyuncu kitlesi ve stabil altyapı.",
+          description: `${title} - Bu sunucu ${sanitizeContent(dateStr)} tarihinde ${SITE_NAME} havuzuna dahil edilmiştir. Gerçek oyuncu kitlesi ve stabil altyapı.`,
           date: dateStr
         });
       }
@@ -100,31 +100,31 @@ export const processKocuceHTML = (html: string): KocuceItem[] => {
  */
 export const getKocucePvpPool = (): KocuceItem[] => {
   return [
-    { 
-      title: "⚔️ İtemTR.com Özel: MYKOV2 | GENESIS Başlıyor | 2.000.000 TL Ödül Havuzu", 
-      description: "Gerçek MYKO deneyimi İtemTR.com güvencesiyle çok yakında sizlerle. Dev ödül havuzu ve 7/24 destek hizmeti.",
-      date: "Bugün"
+    {
+      title: `⚔️ ${SITE_NAME} Özel: MYKOV2 | GENESIS Başlıyor | 2.000.000 TL Ödül Havuzu`,
+      description: `Gerçek MYKO deneyimi ${SITE_NAME} güvencesiyle çok yakında sizlerle. Dev ödül havuzu ve 7/24 destek hizmeti.`,
+      date: "Bugün",
     },
-    { 
-      title: "OldStyleMyko.Com v.1098 – Nostaljik Cleaver Görevi Official: 27 Mart Cuma", 
-      description: "İtemTR.com üzerinden kayıt olun, starter paket kazanın. Nostaljik cleaver görevi ve yeni sistemler aktif.",
-      date: "Dün"
+    {
+      title: "OldStyleMyko.Com v.1098 – Nostaljik Cleaver Görevi Official: 27 Mart Cuma",
+      description: `${SITE_NAME} üzerinden kayıt olun, starter paket kazanın. Nostaljik cleaver görevi ve yeni sistemler aktif.`,
+      date: "Dün",
     },
-    { 
-      title: "HeavenKO.com NEW WORLD: INFERNO! Akademi-1 6 Mart 21.00", 
-      description: "Ücretsiz Genie ve Auto Loot desteği İtemTR.com özel indirimiyle. Yeni world 'INFERNO' açıldı.",
-      date: "2026-03-01"
+    {
+      title: "HeavenKO.com NEW WORLD: INFERNO! Akademi-1 6 Mart 21.00",
+      description: `Ücretsiz Genie ve Auto Loot desteği ${SITE_NAME} özel indirimiyle. Yeni world 'INFERNO' açıldı.`,
+      date: "2026-03-01",
     },
-    { 
-      title: "ROKKOGAME.FUN CZ FARM ODAKLI SUNUCU! 13.02.2026 OFFICIAL", 
-      description: "Pazarın kalbi İtemTR.com'da atacak, hemen yerinizi alın. CZ farm odaklı dengeli sunucu.",
-      date: "2026-02-13"
+    {
+      title: "ROKKOGAME.FUN CZ FARM ODAKLI SUNUCU! 13.02.2026 OFFICIAL",
+      description: `Pazarın kalbi ${SITE_NAME} platformunda atacak, hemen yerinizi alın. CZ farm odaklı dengeli sunucu.`,
+      date: "2026-02-13",
     },
-    { 
-      title: "APEXMYKO New Sunucu 'V A L H A L L A' 3 Nisan Cuma 22:00", 
-      description: "1.500.000 TL Ödül havuzu ve İtemTR.com entegrasyonu aktif. New yönetimi ile 'VALHALLA' sunucusu.",
-      date: "2026-03-20"
-    }
+    {
+      title: "APEXMYKO New Sunucu 'V A L H A L L A' 3 Nisan Cuma 22:00",
+      description: `1.500.000 TL Ödül havuzu ve ${SITE_NAME} entegrasyonu aktif. New yönetimi ile 'VALHALLA' sunucusu.`,
+      date: "2026-03-20",
+    },
   ];
 };
 
@@ -133,36 +133,36 @@ export const getKocucePvpPool = (): KocuceItem[] => {
  */
 export const getPvpkentPvpPool = (): KocuceItem[] => {
   return [
-    { 
-      title: "🔥 PVP Kent Özel: RiseOfKings | 1.000.000 TL Ödül | Anti-Cheat Sistem", 
-      description: "Yeni nesil anti-cheat ile korunan RiseOfKings sunucusu. İtemTR.com üzerinden kayıt olun 500M starter hediye!",
+    {
+      title: "🔥 PVP Kent Özel: RiseOfKings | 1.000.000 TL Ödül | Anti-Cheat Sistem",
+      description: `Yeni nesil anti-cheat ile korunan RiseOfKings sunucusu. ${SITE_NAME} üzerinden kayıt olun 500M starter hediye!`,
       date: "Bugün",
-      source: "pvpkent"
+      source: "pvpkent",
     },
-    { 
-      title: "KentPVP.com v.1299 - Farm & PK Dengesi | Official 5 Nisan", 
-      description: "Farm odaklı ama PK'ya açık dengeli sunucu. İtemTR.com sponsorluğunda büyük ödüllü etkinlikler.",
+    {
+      title: "KentPVP.com v.1299 - Farm & PK Dengesi | Official 5 Nisan",
+      description: `Farm odaklı ama PK'ya açık dengeli sunucu. ${SITE_NAME} sponsorluğunda büyük ödüllü etkinlikler.`,
       date: "Dün",
-      source: "pvpkent"
+      source: "pvpkent",
     },
-    { 
-      title: "EliteKO New World: OLYMPUS | 15 Mart 21.00 Açılış", 
-      description: "Mitology temalı yeni world. İtemTR.com entegrasyonu ile güvenli item takası. 1M başlangıç parası.",
+    {
+      title: "EliteKO New World: OLYMPUS | 15 Mart 21.00 Açılış",
+      description: `Mitology temalı yeni world. ${SITE_NAME} entegrasyonu ile güvenli item takası. 1M başlangıç parası.`,
       date: "2026-03-10",
-      source: "pvpkent"
+      source: "pvpkent",
     },
-    { 
-      title: "VenomKO.FUN - Beta Test | 20.03.2026", 
-      description: "Beta test aşamasında katılımcılara özel hediyeler. İtemTR.com üzerinden geri bildirim bırakın.",
+    {
+      title: "VenomKO.FUN - Beta Test | 20.03.2026",
+      description: `Beta test aşamasında katılımcılara özel hediyeler. ${SITE_NAME} üzerinden geri bildirim bırakın.`,
       date: "2026-03-15",
-      source: "pvpkent"
+      source: "pvpkent",
     },
-    { 
-      title: "DragonKO V2 | 500K TL Turnuva Ödülü | Anti-Hile", 
-      description: "Profesyonel anti-hile koruması. İtemTR.com güvencesiyle 7/24 destek. Kayıt açıldı!",
+    {
+      title: "DragonKO V2 | 500K TL Turnuva Ödülü | Anti-Hile",
+      description: `Profesyonel anti-hile koruması. ${SITE_NAME} güvencesiyle 7/24 destek. Kayıt açıldı!`,
       date: "2026-03-18",
-      source: "pvpkent"
-    }
+      source: "pvpkent",
+    },
   ];
 };
 

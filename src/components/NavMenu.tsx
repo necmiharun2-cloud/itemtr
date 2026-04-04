@@ -4,13 +4,13 @@ import { Link } from "react-router-dom";
 import { slugifyCategory } from "@/lib/marketplace";
 
 const navItems = [
-  { icon: ShoppingBag, label: "İlan Pazarı", href: "/category" },
+  { icon: ShoppingBag, label: "İlan Pazarı", href: "/ilan-pazari" },
   { icon: ShoppingCart, label: "Alım İlanları", href: "/dashboard?tab=purchases" },
   { icon: Store, label: "Mağazalar", href: "/stores" },
   { icon: Key, label: "CD-Key", href: "/category/steam" },
   { icon: CreditCard, label: "Top Up", href: "/category/pubg-mobile" },
   { icon: Gift, label: "Hediye Kartları", href: "/category/steam" },
-  { icon: Users, label: "Topluluk", href: "/support" },
+  { icon: Users, label: "Yayıncılar", href: "/stores" },
 ];
 
 const megaMenuCategories = [

@@ -1,3 +1,4 @@
+import { SITE_EMAIL_DOMAIN, SITE_NAME } from "./site-brand";
 import { type ListingSection } from "./marketplace";
 import { getCombinedPvpPool, type KocuceItem } from "./rss-service";
 import { ListingVisualDirector } from "./visual-director";
@@ -129,7 +130,7 @@ const watermarkImage = async (imageUrl: string): Promise<string> => {
         ctx.textAlign = "right";
         ctx.textBaseline = "bottom";
         ctx.fillStyle = "rgba(255, 255, 255, 0.4)";
-        ctx.fillText("ITEMTR.COM", canvas.width - 20, canvas.height - 15);
+        ctx.fillText(SITE_EMAIL_DOMAIN.toUpperCase(), canvas.width - 20, canvas.height - 15);
 
         resolve(canvas.toDataURL("image/jpeg", 0.9));
       } catch {
@@ -245,7 +246,7 @@ const REVIEWER_POOL = ["Kaan07","MertGame","AsliShopper","VipOyuncu","GizemliMar
 const CATEGORY_CONTENT: Record<string, { titles: string[], descriptions: string[] }> = {
   "CS2": {
     titles: ["3000 Saat Prime CS2 Hesap %100 Guvenli", "CS2 Seçkin Hesap | 10 Yıllık Tecrübe Rozetli", "Kelebek Bıçaklı + 200 Skinli Arşivlik CS2", "Yeşil Trust Factor Prime Hesap (6 Madalyalı)"],
-    descriptions: ["✅ Prime Aktif\n• İlk Mail Erişimi Mevcut\n• Anında Teslim Edilir\n• İtemTR Güvencesiyle"]
+    descriptions: [`✅ Prime Aktif\n• İlk Mail Erişimi Mevcut\n• Anında Teslim Edilir\n• ${SITE_NAME} güvencesiyle`],
   },
   "Valorant": {
     titles: ["Valorant Radiant Elmas Rank Hesap - İlk Mail", "Yağmacı + Asil Setli Full Skin Valorant", "Valorant 200 Level Full Karakter Açık"],
@@ -273,7 +274,7 @@ const CATEGORY_CONTENT: Record<string, { titles: string[], descriptions: string[
   },
   "Metin2": {
     titles: ["Metin2 25 GB Won Paketi", "Metin2 Item Seti — Hızlı Teslim", "90 Level Bedensel Karakter — Metin2"],
-    descriptions: ["Metin2 güvenli teslimat\n- 7/24 aktif\n- İtemTR Garantisiyle"]
+    descriptions: [`Metin2 güvenli teslimat\n- 7/24 aktif\n- ${SITE_NAME} garantisiyle`],
   },
   "Knight Online": {
     titles: ["Knight Online Gold Paketi", "USKO KC — Anında Transfer", "Knight Online 80 Level Ringli Char"],
@@ -410,13 +411,13 @@ export const generateBotListing = async (): Promise<BotListing> => {
     price: itemsatisListing.price,
     image: itemsatisListing.image,
     description: itemsatisListing.description,
-    seoKeywords: [itemsatisListing.category.toLowerCase(), "bot", "itemtr"],
+    seoKeywords: [itemsatisListing.category.toLowerCase(), "bot", SITE_EMAIL_DOMAIN],
     isAutoDelivery: itemsatisListing.category !== "PVP Serverlar" && Math.random() > 0.3,
     isBot: true,
     isPurchasable: false,
     availabilityMessage: "Ürün Mevcut Değil",
     stock: 0,
-    tags: ["Güvenilir", "Hızlı", "ItemTR"],
+    tags: ["Güvenilir", "Hızlı", SITE_NAME],
     reviews: [],
     bgColor: "bg-[#16a34a]",
     isVitrin: Math.random() < 0.25,

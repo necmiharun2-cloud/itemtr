@@ -25,6 +25,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { getNewListings, getPvpServerListings, getVitrinListings, type MarketplaceListing } from "@/lib/marketplace";
 import { cn } from "@/lib/utils";
+import { SITE_DOMAIN, SITE_NAME, SITE_TAGLINE } from "@/lib/site-brand";
 
 const Index = () => {
   const navigate = useNavigate();
@@ -68,10 +69,10 @@ const Index = () => {
             <div className="space-y-4">
               {/* SEO: Ana H1 - Daha inandırıcı başlık */}
               <h1 className="text-4xl font-black italic tracking-tighter text-white md:text-6xl uppercase">
-                Doğrulanmış Satıcılarla <span className="text-primary not-italic">Güvenli Oyun Hesabı</span> Pazaryeri
+                E-Pin ve Dijital Ürünlerde <span className="text-primary not-italic">Alıcı Korumalı</span> Oyuncu Pazarı
               </h1>
               <p className="text-lg font-medium text-muted-foreground opacity-80 uppercase tracking-widest text-[10px] md:text-xs">
-                Alıcı Korumalı, Hızlı ve Şeffaf Alışverişin Adresi İtemTR.com
+                {SITE_TAGLINE} — {SITE_NAME} ({SITE_DOMAIN})
               </p>
             </div>
           </div>
@@ -119,8 +120,8 @@ const Index = () => {
                 Alıcı <span className="text-primary">Koruma</span> Sistemi
               </h2>
               <p className="text-muted-foreground leading-relaxed">
-                İtemTR olarak her satın alma işleminde alıcıyı koruyoruz. Ödemenizi yapıyorsunuz, 
-                ancak satıcıya ödeme, siz ürünü teslim alana ve onaylayana kadar güvende kalıyor. 
+                {SITE_NAME} olarak her satın alma işleminde alıcıyı koruyoruz. Ödemenizi yapıyorsunuz;
+                satıcıya ödeme, siz ürünü teslim alana ve onaylayana kadar güvende kalıyor.
                 Sorun yaşarsanız 7/24 destek ekibimiz devreye giriyor.
               </p>
               <ul className="space-y-2">

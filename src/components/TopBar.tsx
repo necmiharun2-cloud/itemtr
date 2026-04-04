@@ -21,7 +21,7 @@ const TopBar = () => {
         </div>
         <div className="flex items-center gap-2 sm:gap-4">
           <div className="hidden md:flex items-center gap-6 text-muted-foreground">
-            <Link to="/category" className="font-semibold text-accent hover:underline whitespace-nowrap">🔥 Haftanın Fırsatları</Link>
+            <Link to="/ilan-pazari" className="font-semibold text-accent hover:underline whitespace-nowrap">🔥 Haftanın Fırsatları</Link>
             <Link to="/blog" className="font-semibold hover:text-foreground">Blog</Link>
             <Link to="/pvp-serverlar" className="hover:text-foreground">PVP Serverlar</Link>
             <Link to="/support" className="hover:text-foreground">Destek</Link>

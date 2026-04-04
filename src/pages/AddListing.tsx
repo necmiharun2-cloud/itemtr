@@ -15,6 +15,7 @@ import { toast } from "sonner";
 import { addMarketplaceListing, type ListingSection, createListing } from "@/lib/marketplace";
 import { getCurrentUser, rewardCurrentUser } from "@/lib/auth";
 import { supabase } from "@/lib/supabase";
+import { LISTING_COMMISSION_PERCENT, SITE_NAME } from "@/lib/site-brand";
 
 const STANDARD_CATEGORIES = [
   "Oyun Hesapları",
@@ -289,7 +290,7 @@ const AddListing = () => {
                     </div>
                     <h4 className="text-md font-black uppercase italic tracking-tight">HD Görsel Koruması</h4>
                   </div>
-                  <p className="text-xs font-medium uppercase tracking-widest leading-relaxed text-muted-foreground opacity-60">Görselleriniz otomatik optimize edilir ve İtemTR.com filigranı ile korunur.</p>
+                  <p className="text-xs font-medium uppercase tracking-widest leading-relaxed text-muted-foreground opacity-60">{`Görselleriniz otomatik optimize edilir ve ${SITE_NAME} filigranı ile korunur.`}</p>
                   <Button type="button" variant="outline" className="h-12 w-full rounded-xl border-dashed border-primary/30 text-[10px] font-black uppercase tracking-widest text-primary-foreground hover:bg-primary/10">GÖRSEL URL KULLAN</Button>
                 </div>
               </CardContent>
@@ -320,8 +321,18 @@ const AddListing = () => {
                     />
                     <span className="absolute left-6 top-1/2 mt-1 -translate-y-1/2 text-3xl font-black text-primary">₺</span>
                   </div>
-                  <div className="flex items-center gap-2 rounded-xl border border-success/10 bg-success/5 p-4 text-[10px] font-black uppercase tracking-widest text-success">
-                    <ShieldCheck className="h-4 w-4" /> Net Kazancınız: ₺{(Number(formData.price || 0) * 0.9).toFixed(2)}
+                  <div className="space-y-2">
+                    <div className="flex items-center gap-2 rounded-xl border border-border/60 bg-muted/30 p-3 text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
+                      <ShieldCheck className="h-4 w-4 text-primary shrink-0" />
+                      <span>
+                        Platform komisyonu %{LISTING_COMMISSION_PERCENT} — satıştan sonra kesinti uygulanır (yayın öncesi tahmini).
+                      </span>
+                    </div>
+                    <div className="flex items-center gap-2 rounded-xl border border-success/10 bg-success/5 p-4 text-[10px] font-black uppercase tracking-widest text-success">
+                      <ShieldCheck className="h-4 w-4" />
+                      Tahmini net: ₺
+                      {(Number(formData.price || 0) * (1 - LISTING_COMMISSION_PERCENT / 100)).toFixed(2)}
+                    </div>
                   </div>
                 </div>
 

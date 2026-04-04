@@ -23,4 +23,4 @@ Disallow: /add-listing
 Disallow: /orders
 Disallow: /forgot-password
 
-Sitemap: https://itemtr.com/sitemap.xml
+Sitemap: https://www.itemsatis.com/sitemap.xml

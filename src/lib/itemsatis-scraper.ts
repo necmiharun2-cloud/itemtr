@@ -132,7 +132,7 @@ const getAvailableListings = (listings: ItemSatisListing[]): ItemSatisListing[] 
 };
 
 /**
- * Fetches and parses itemtr.com listings with Unsplash images
+ * Demo: gerçek site çekimi için backend proxy gerekir; görseller Unsplash ile üretilir.
  */
 export const fetchItemSatisListings = async (category?: string): Promise<ItemSatisListing[]> => {
   try {
@@ -140,7 +140,7 @@ export const fetchItemSatisListings = async (category?: string): Promise<ItemSat
       {
         id: "IS-001",
         title: "3000 Saat Prime CS2 Hesap %100 Güvenli",
-        description: "✅ Hesap Özellikleri:\n• Prime Aktif\n• Yeşil Güven Faktörü\n• Rekabetçi Modu Açık\n• İlk Mail Erişimi Mevcut\n• Anında Teslim Edilir\n• İtemTR Güvencesiyle",
+        description: "✅ Hesap Özellikleri:\n• Prime Aktif\n• Yeşil Güven Faktörü\n• Rekabetçi Modu Açık\n• İlk Mail Erişimi Mevcut\n• Anında Teslim Edilir\n• İtemSatış güvencesiyle",
         price: "450 ₺",
         image: getCategoryImage("CS2", 0),
         category: "CS2",
@@ -302,7 +302,7 @@ export const fetchItemSatisListings = async (category?: string): Promise<ItemSat
       {
         id: "IS-019",
         title: "Metin2 50 GB Won Paketi — Anında Teslimat",
-        description: "Metin2 Won satışı\n- Güvenilir teslimat\n- Anında işlem\n- İtemTR kalitesi",
+        description: "Metin2 Won satışı\n- Güvenilir teslimat\n- Anında işlem\n- İtemSatış kalitesi",
         price: "420 ₺",
         image: getCategoryImage("Metin2", 0),
         category: "Metin2",
@@ -497,7 +497,7 @@ export const getCachedItemSatisListings = (): ItemSatisListing[] => {
  * Real itemsatis scraper (requires CORS proxy or backend)
  * Note: Direct scraping from browser is blocked by CORS
  */
-export const scrapeItemSatis = async (url: string = "https://www.itemtr.com"): Promise<ItemSatisListing[]> => {
-  console.log("[ItemTR] Gerçek scraping için backend proxy gerekli. Unsplash görselleri kullanılıyor.");
+export const scrapeItemSatis = async (url: string = "https://www.itemsatis.com"): Promise<ItemSatisListing[]> => {
+  console.log("[İtemSatış] Gerçek scraping için backend proxy gerekli. Unsplash görselleri kullanılıyor.", url);
   return fetchItemSatisListings();
 };

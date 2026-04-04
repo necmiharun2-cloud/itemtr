@@ -59,16 +59,3 @@ export const getSession = async () => {
   }
 }
 
-// Test connection to Supabase
-export const testSupabaseConnection = async () => {
-  try {
-    const { data: { user }, error: authError } = await supabase.auth.getUser()
-    if (authError) throw authError
-    
-    console.log('[Supabase] ✅ Connection successful')
-    return { success: true, user }
-  } catch (error) {
-    console.warn('[Supabase] ⚠️ Connection failed:', error)
-    return { success: false, error }
-  }
-}

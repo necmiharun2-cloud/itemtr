@@ -74,7 +74,7 @@ const Login = () => {
               <p className="text-[10px] font-bold text-muted-foreground uppercase mt-1 tracking-widest opacity-60">Hesabınıza giriş yapın</p>
             </div>
 
-            <form className="space-y-4" onSubmit={handleSubmit}>
+            <form className="space-y-4" onSubmit={handleSubmit} role="form">
               <div className="space-y-2">
                 <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground opacity-60">E-posta veya Kullanıcı Adı</label>
                 <div className="relative">
@@ -137,8 +137,8 @@ const Login = () => {
             </div>
 
             <div className="rounded-xl bg-secondary/70 border border-border p-4 text-[10px] text-muted-foreground space-y-1 font-bold uppercase opacity-80">
-              <p><span className="font-black text-foreground"></span> </p>
-              <p><span className="font-black text-foreground"></span> </p>
+              <p><span className="font-black text-foreground">🔒 Güvenli Giriş:</span> 256-bit SSL şifreleme ile korunuyor</p>
+              <p><span className="font-black text-foreground">🛡️ Alıcı Koruması:</span> Tüm işlemler güvence altında</p>
             </div>
 
             <p className="text-sm text-muted-foreground">

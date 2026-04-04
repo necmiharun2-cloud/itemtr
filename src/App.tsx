@@ -10,7 +10,6 @@ import BotManager from "@/components/BotManager";
 import { FloatingSupport } from "@/components/LiveChat";
 import { getCurrentUser, seedAuth } from "@/lib/auth";
 import { seedMessaging } from "@/lib/messaging";
-import { testSupabaseConnection } from "@/lib/supabase";
 import Index from "./pages/Index.tsx";
 import NotFound from "./pages/NotFound.tsx";
 import ListingDetail from "./pages/ListingDetail.tsx";
@@ -69,17 +68,6 @@ const Bootstrap = () => {
   useEffect(() => {
     seedAuth();
     seedMessaging();
-    
-    // Test Supabase connection on app load (only in development)
-    if (import.meta.env.DEV) {
-      testSupabaseConnection().then((result) => {
-        if (result.success) {
-          console.log("[App] Supabase connected successfully");
-        } else {
-          console.warn("[App] Supabase connection failed - using local storage fallback");
-        }
-      });
-    }
   }, []);
 
   return null;
@@ -176,6 +164,9 @@ const App = () => (
           <ScrollToTop />
           <Routes>
             <Route path="/" element={<Index />} />
+            <Route path="/ilan-pazari" element={<Navigate to="/category" replace />} />
+            <Route path="/sattigim-ilanlar" element={<ProtectedRoute><Navigate to="/dashboard?tab=listings" replace /></ProtectedRoute>} />
+            <Route path="/aldigim-ilanlar" element={<ProtectedRoute><Navigate to="/dashboard?tab=purchases" replace /></ProtectedRoute>} />
             <Route path="/listing/:id" element={<ListingDetail />} />
             <Route path="/category/:slug" element={<Category />} />
             <Route path="/category" element={<Category />} />

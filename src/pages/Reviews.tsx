@@ -5,6 +5,7 @@ import Footer from "@/components/Footer";
 import { Star, MessageSquare, CheckCircle2, User, ThumbsUp, TrendingUp } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { SITE_NAME } from "@/lib/site-brand";
 
 const Reviews = () => {
   const allReviews = [
@@ -28,7 +29,7 @@ const Reviews = () => {
               <TrendingUp className="h-4 w-4" /> Kullanıcı Deneyimi
            </div>
            <h1 className="text-4xl font-black text-white tracking-tighter uppercase italic">Müşteri Yorumları</h1>
-           <p className="text-muted-foreground text-lg max-w-2xl mx-auto">Tüm alışverişler gerçek ve sistem onaylıdır. İtemTR.com'da güven önceliğimizdir.</p>
+           <p className="text-muted-foreground text-lg max-w-2xl mx-auto">{`Tüm alışverişler gerçek ve sistem onaylıdır. ${SITE_NAME}'te güven önceliğimizdir.`}</p>
         </section>
 
         {/* Global Rating Stats */}

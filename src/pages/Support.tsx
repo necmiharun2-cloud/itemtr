@@ -4,6 +4,7 @@ import NavMenu from "@/components/NavMenu";
 import Footer from "@/components/Footer";
 import { Search, HelpCircle, ShieldCheck, CreditCard, MessageCircle, ChevronDown, ChevronRight, BookOpen, Headphones } from "lucide-react";
 import { useState } from "react";
+import { LISTING_COMMISSION_PERCENT, SITE_LEGAL_LABEL, SITE_NAME } from "@/lib/site-brand";
 
 const faqCategories = [
   { icon: ShieldCheck, label: "Güvenlik", count: 8 },
@@ -14,14 +15,38 @@ const faqCategories = [
 ];
 
 const faqs = [
-  { q: "İtemTR.com'da nasıl ilan verebilirim?", a: "Hesabınıza giriş yaptıktan sonra 'İlan Ekle' butonuna tıklayarak kategori seçip ilan bilgilerini doldurabilirsiniz. İlanınız onaylandıktan sonra yayına alınır." },
-  { q: "Ödeme yöntemleri nelerdir?", a: "Kredi kartı, banka havalesi, Papara, İninal ve bakiye ile ödeme yapabilirsiniz. Tüm ödemeler 256-bit SSL ile şifrelenir." },
-  { q: "Satıcıya nasıl güvenebilirim?", a: "Satıcı puanları, değerlendirmeleri ve satış geçmişini kontrol edebilirsiniz. Ayrıca İtemTR.com güvence sistemi ile korunuyorsunuz." },
-  { q: "İade ve iptal politikası nedir?", a: "Ürün teslim edilmeden önce sipariş iptal edilebilir. Teslim sonrası sorun yaşarsanız destek ekibimize başvurabilirsiniz." },
-  { q: "Bakiye nasıl yüklenir?", a: "Profil sayfanızdan 'Bakiye Yükle' seçeneğine tıklayarak kredi kartı, Papara veya havale ile bakiye yükleyebilirsiniz." },
-  { q: "Hesabım çalındı, ne yapmalıyım?", a: "Hemen destek ekibimize ulaşın. Hesabınızı geçici olarak donduracak ve kimlik doğrulama sonrası geri vereceğiz." },
-  { q: "Satıcı olmak için şartlar nelerdir?", a: "Telefon ve e-posta doğrulaması yapmanız yeterlidir. Mağaza açmak için ise en az 10 başarılı satış yapmanız gerekir." },
-  { q: "Komisyon oranları nedir?", a: "Standart komisyon oranı %5'tir. Mağaza sahipleri için özel komisyon oranları uygulanmaktadır." },
+  {
+    q: `${SITE_NAME}'te nasıl ilan verebilirim?`,
+    a: "Hesabınıza giriş yaptıktan sonra 'İlan Ekle' butonuna tıklayarak kategori seçip ilan bilgilerini doldurabilirsiniz. İlanınız onaylandıktan sonra yayına alınır.",
+  },
+  {
+    q: "Ödeme yöntemleri nelerdir?",
+    a: "Kredi kartı (3D Secure), banka havalesi, Papara, kripto ve bakiye ile ödeme yapabilirsiniz. Tüm ödemeler SSL ile şifrelenir.",
+  },
+  {
+    q: "Satıcıya nasıl güvenebilirim?",
+    a: `Satıcı puanları, değerlendirmeleri ve satış geçmişini kontrol edebilirsiniz. Ayrıca ${SITE_LEGAL_LABEL} güvence sistemi ile korunuyorsunuz.`,
+  },
+  {
+    q: "İade ve iptal politikası nedir?",
+    a: "Ürün teslim edilmeden önce sipariş iptal edilebilir. Teslim sonrası sorun yaşarsanız destek ekibimize başvurabilirsiniz.",
+  },
+  {
+    q: "Bakiye nasıl yüklenir?",
+    a: "Profil sayfanızdan 'Bakiye Yükle' seçeneğine tıklayarak kredi kartı, Papara veya havale ile bakiye yükleyebilirsiniz.",
+  },
+  {
+    q: "Hesabım çalındı, ne yapmalıyım?",
+    a: "Hemen destek ekibimize ulaşın. Hesabınızı geçici olarak donduracak ve kimlik doğrulama sonrası geri vereceğiz.",
+  },
+  {
+    q: "Satıcı olmak için şartlar nelerdir?",
+    a: "Telefon ve e-posta doğrulaması yapmanız yeterlidir. Mağaza açmak için ise en az 10 başarılı satış yapmanız gerekir.",
+  },
+  {
+    q: "Komisyon oranları nedir?",
+    a: `Standart komisyon oranı %${LISTING_COMMISSION_PERCENT}'dir. Mağaza sahipleri için kategoriye özel oranlar tanımlanabilir.`,
+  },
 ];
 
 const Support = () => {

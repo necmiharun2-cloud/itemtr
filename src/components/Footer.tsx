@@ -1,5 +1,6 @@
 import { MessageCircle, Shield, CreditCard, Headphones, ChevronRight } from "lucide-react";
 import { Link } from "react-router-dom";
+import { SITE_LOGO_ACCENT, SITE_LOGO_PRIMARY, SITE_NAME, SITE_DOMAIN } from "@/lib/site-brand";
 
 const Footer = () => {
   return (
@@ -48,22 +49,22 @@ const Footer = () => {
       <div className="border-b border-border bg-secondary/30">
         <div className="container flex flex-wrap items-center justify-center gap-8 py-4 text-center">
           <div>
-            <p className="text-xl font-bold text-primary">150K+</p>
+            <p className="text-xl font-bold text-primary">2M+</p>
             <p className="text-xs text-muted-foreground">Kayıtlı Üye</p>
           </div>
           <div className="h-8 w-px bg-border" />
           <div>
-            <p className="text-xl font-bold text-success">85K+</p>
+            <p className="text-xl font-bold text-success">500K+</p>
             <p className="text-xs text-muted-foreground">Tamamlanan İşlem</p>
           </div>
           <div className="h-8 w-px bg-border" />
           <div>
-            <p className="text-xl font-bold text-accent">4.7</p>
-            <p className="text-xs text-muted-foreground">Ortalama Puan</p>
+            <p className="text-xl font-bold text-accent">%94</p>
+            <p className="text-xs text-muted-foreground">Memnuniyet</p>
           </div>
           <div className="h-8 w-px bg-border" />
           <div>
-            <p className="text-xl font-bold text-foreground">25K+</p>
+            <p className="text-xl font-bold text-foreground">100K+</p>
             <p className="text-xs text-muted-foreground">Aktif İlan</p>
           </div>
         </div>
@@ -74,10 +75,13 @@ const Footer = () => {
           <div className="space-y-3 md:col-span-1">
             <div className="flex items-center gap-2">
               <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary text-lg font-bold text-primary-foreground">İ</div>
-              <span className="text-lg font-bold text-foreground">İtem<span className="text-primary">TR.com</span></span>
+              <span className="text-lg font-bold text-foreground">
+                {SITE_LOGO_PRIMARY}
+                <span className="text-primary">{SITE_LOGO_ACCENT}</span>
+              </span>
             </div>
             <p className="text-xs leading-relaxed text-muted-foreground">
-              Türkiye'nin güvenli dijital ürün pazaryeri. Oyun hesapları, e-pin, PVP server tanıtımı ve sosyal medya hizmetleri tek çatı altında.
+              {SITE_NAME}: e-pin, CD-Key, oyun parası, hesap satışı, hediye kartı ve sosyal medya hizmetleri. Alıcı korumalı ödeme ve 7/24 destek.
             </p>
             <div className="flex items-center gap-2 pt-1">
               <Link to="/blog" className="flex h-8 w-8 items-center justify-center rounded-lg bg-secondary text-sm text-muted-foreground transition-colors hover:bg-muted hover:text-foreground">
@@ -98,11 +102,11 @@ const Footer = () => {
             <h4 className="text-sm font-semibold text-foreground">Kurumsal</h4>
             <ul className="space-y-2">
               {[
-                { label: "Hakkımızda", to: "/legal/terms" },
-                { label: "İletişim", to: "/support" },
-                { label: "Kariyer", to: "/blog" },
+                { label: "Hakkımızda", to: "/about" },
+                { label: "İletişim", to: "/contact" },
                 { label: "Blog", to: "/blog" },
-                { label: "Yayıncılar", to: "/stores" },
+                { label: "Mağazalar", to: "/stores" },
+                { label: "Müşteri Yorumları", to: "/reviews" },
               ].map((item) => (
                 <li key={item.label}>
                   <Link to={item.to} className="flex items-center gap-1 text-sm text-muted-foreground transition-colors hover:text-foreground">
@@ -158,6 +162,7 @@ const Footer = () => {
                 { label: "Giriş Yap", to: "/login" },
                 { label: "Bakiye Yükle", to: "/deposit" },
                 { label: "İlan Ekle", to: "/add-listing" },
+                { label: "Sattığım İlanlar", to: "/sattigim-ilanlar" },
                 { label: "Çekilişler", to: "/giveaways" },
               ].map((item) => (
                 <li key={item.label}>
@@ -192,13 +197,15 @@ const Footer = () => {
         <div className="container flex flex-col items-center justify-between gap-2 py-4 text-xs text-muted-foreground md:flex-row">
           <div className="flex items-center gap-2">
             <div className="flex h-6 w-6 items-center justify-center rounded bg-primary text-xs font-bold text-primary-foreground">İ</div>
-            <span>© 2026 İtemTR.com. Tüm hakları saklıdır.</span>
+            <span>
+              © 2026 {SITE_NAME} ({SITE_DOMAIN}). Tüm hakları saklıdır.
+            </span>
           </div>
           <div className="flex items-center gap-4">
             <Link to="/legal/terms" className="transition-colors hover:text-foreground">Kullanım Şartları</Link>
-            <Link to="/legal/refund" className="transition-colors hover:text-foreground">Gizlilik Politikası</Link>
+            <Link to="/legal/privacy" className="transition-colors hover:text-foreground">Gizlilik Politikası</Link>
             <Link to="/legal/kvkk" className="transition-colors hover:text-foreground">KVKK</Link>
-            <Link to="/sss" className="transition-colors hover:text-foreground">Çerez Politikası</Link>
+            <Link to="/legal/refund" className="transition-colors hover:text-foreground">İade Politikası</Link>
           </div>
         </div>
       </div>

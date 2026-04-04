@@ -50,6 +50,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
+import { SITE_NAME } from "@/lib/site-brand";
 
 type DashboardTab =
   | "overview"
@@ -326,7 +327,7 @@ const Dashboard = () => {
       }
       } catch (err) {
         console.error("[Dashboard] syncUserState", err);
-        toast.error("Panel verileri yüklenirken hata oluştu. Sayfayı yenileyin veya tekrar giriş yapın.");
+        toast.error("Panel verileri yüklenirken hata oluştu. Lütfen tekrar deneyin.");
       } finally {
         setIsLoading(false);
       }
@@ -636,7 +637,7 @@ const Dashboard = () => {
                   <Card className="rounded-[2rem] bg-card border-white/5 shadow-2xl">
                     <CardHeader className="p-8 border-b border-white/5">
                       <CardTitle className="text-xl font-black text-white italic uppercase tracking-tighter">Mağaza Performansı</CardTitle>
-                      <CardDescription className="text-[10px] font-black uppercase text-muted-foreground opacity-60 tracking-widest">İtemTR.com mağaza sağlık göstergeleri</CardDescription>
+                      <CardDescription className="text-[10px] font-black uppercase text-muted-foreground opacity-60 tracking-widest">{`${SITE_NAME} mağaza sağlık göstergeleri`}</CardDescription>
                     </CardHeader>
                     <CardContent className="p-8 space-y-6">
                       {[

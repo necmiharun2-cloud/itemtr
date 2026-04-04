@@ -161,19 +161,19 @@ const Register = () => {
               <p className="text-sm text-muted-foreground mt-1">Yeni bir hesap oluşturun</p>
             </div>
 
-            {/* Beta Uyarısı */}
-            <div className="rounded-xl bg-orange-500/10 border border-orange-500/20 p-4 flex items-start gap-3">
-              <AlertCircle className="h-5 w-5 text-orange-500 shrink-0 mt-0.5" />
+            {/* Avantajlar */}
+            <div className="rounded-xl bg-primary/5 border border-primary/10 p-4 flex items-start gap-3">
+              <CheckCircle2 className="h-5 w-5 text-primary shrink-0 mt-0.5" />
               <div className="space-y-1">
-                <p className="text-sm font-semibold text-orange-500">Beta Aşamasında</p>
+                <p className="text-sm font-semibold text-primary">Ücretsiz Hesap Oluştur</p>
                 <p className="text-xs text-muted-foreground">
                   Yeni hesap oluşturarak satıcı paneline, bakiye alanına ve destek merkezine erişebilirsin.
-                  E-posta doğrulaması açıksa önce kutunu kontrol etmen gerekir.
+                  Satın alma işlemlerinde alıcı korumasından yararlan.
                 </p>
               </div>
             </div>
 
-            <form className="space-y-4" onSubmit={handleSubmit}>
+            <form className="space-y-4" onSubmit={handleSubmit} role="form">
               <div className="space-y-2">
                 <label className="text-sm font-medium text-foreground">Kullanıcı Adı</label>
                 <div className="relative">

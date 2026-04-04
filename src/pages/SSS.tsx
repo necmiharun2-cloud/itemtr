@@ -8,6 +8,7 @@ import Footer from "@/components/Footer";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import { SITE_LEGAL_LABEL } from "@/lib/site-brand";
 
 const faqCategories = [
   { id: "general", label: "Genel Sorular", icon: HelpCircle },
@@ -18,7 +19,11 @@ const faqCategories = [
 ];
 
 const faqData = [
-  { category: "general", question: "İtemTR.com nedir?", answer: "İtemTR.com; oyun hesapları, dijital ürünler ve PVP server tanıtımlarının güvenli havuz sistemiyle yayınlandığı dijital pazaryeridir." },
+  {
+    category: "general",
+    question: `${SITE_LEGAL_LABEL} nedir?`,
+    answer: `${SITE_LEGAL_LABEL}; oyun hesapları, e-pin, CD-Key, dijital ürünler ve PVP server tanıtımlarının güvenli havuz sistemiyle yayınlandığı dijital pazaryeridir.`,
+  },
   { category: "general", question: "Sistem nasıl çalışır?", answer: "Alıcı ödeme yaptığında tutar güvenli havuzda bekler. Teslimat onaylanınca ödeme satıcıya aktarılır. Böylece iki taraf da korunur." },
   { category: "orders", question: "Nasıl bakiye yükleyebilirim?", answer: "Bakiye yükleme sayfasından kart veya diğer desteklenen yöntemlerle anında bakiye ekleyebilirsiniz." },
   { category: "orders", question: "Dijital ürünlerde iade var mı?", answer: "Teslim edilmiş dijital ürünlerde iade koşulları ilan açıklaması ve hukuki metinlere göre değerlendirilir. Detaylı bilgi için İade ve İptal Politikası sayfasına bakabilirsiniz." },

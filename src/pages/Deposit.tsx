@@ -10,6 +10,7 @@ import { toast } from "sonner";
 import { supabase } from "@/lib/supabase";
 import { AUTH_CHANGED_EVENT, getCurrentUser } from "@/lib/auth";
 import { startPaytrDeposit } from "@/lib/payment";
+import { SITE_NAME } from "@/lib/site-brand";
 
 const amounts = [50, 100, 250, 500, 1000, 2500];
 
@@ -110,7 +111,7 @@ const Deposit = () => {
       if (method === "card" || method === "papara") {
         const payMethod = method === "papara" ? "papara" : "card";
         const result = await startPaytrDeposit(resolvedAmount, payMethod);
-        if (!result.ok) {
+        if (result.ok === false) {
           if (result.configured === false) {
             toast.error("Ödeme altyapısı yapılandırılmamış.", {
               description: "Vercel ortam değişkenlerinde PayTR ve Supabase anahtarlarını tanımlayın.",
@@ -127,7 +128,7 @@ const Deposit = () => {
 
       if (method === "bank") {
         const iban = import.meta.env.VITE_BANK_IBAN?.trim();
-        const recipient = import.meta.env.VITE_BANK_ACCOUNT_NAME?.trim() || "ItemTR";
+        const recipient = import.meta.env.VITE_BANK_ACCOUNT_NAME?.trim() || SITE_NAME;
         if (!iban) {
           toast.error("Havale bilgileri tanımlı değil.", {
             description: "Yönetici: VITE_BANK_IBAN ve isteğe bağlı VITE_BANK_ACCOUNT_NAME ayarlayın.",

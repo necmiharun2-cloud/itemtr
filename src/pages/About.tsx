@@ -3,6 +3,7 @@ import Header from "@/components/Header";
 import NavMenu from "@/components/NavMenu";
 import Footer from "@/components/Footer";
 import { Shield, Users, Clock, Headphones, CheckCircle, TrendingUp } from "lucide-react";
+import { SITE_NAME, SUPPORT_EMAIL } from "@/lib/site-brand";
 
 const About = () => {
   return (
@@ -18,8 +19,8 @@ const About = () => {
             Hakkımızda
           </h1>
           <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
-            Türkiye'nin en güvenilir oyun hesabı pazaryeri olarak 2024'ten beri 
-            gamer'lara hizmet veriyoruz.
+            Türkiye&apos;nin oyuncu alışveriş platformu olarak dijital ürün ve hesap
+            ticaretinde güven odaklı hizmet sunuyoruz.
           </p>
         </section>
 
@@ -46,8 +47,8 @@ const About = () => {
               Misyonumuz
             </h2>
             <p className="text-muted-foreground leading-relaxed">
-              İtemTR olarak amacımız, oyun tutkunlarına güvenli, hızlı ve şeffaf 
-              bir alışveriş deneyimi sunmak. Alıcı korumalı sistemimizle her 
+              {SITE_NAME} olarak amacımız, oyun tutkunlarına güvenli, hızlı ve şeffaf
+              bir alışveriş deneyimi sunmak. Alıcı korumalı sistemimizle her
               satın alma işleminde kullanıcılarımızın yanındayız.
             </p>
             <ul className="space-y-2">
@@ -80,7 +81,7 @@ const About = () => {
           <p className="text-muted-foreground mb-4">
             Sorularınız için 7/24 destek ekibimize ulaşabilirsiniz.
           </p>
-          <p className="text-primary font-medium">destek@itemtr.com</p>
+          <p className="text-primary font-medium">{SUPPORT_EMAIL}</p>
         </section>
       </main>
 

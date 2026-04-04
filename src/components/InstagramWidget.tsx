@@ -1,5 +1,6 @@
 import { Instagram } from "lucide-react";
 import { Link } from "react-router-dom";
+import { SITE_NAME } from "@/lib/site-brand";
 
 const InstagramWidget = () => {
   return (
@@ -10,12 +11,12 @@ const InstagramWidget = () => {
             <Instagram className="h-6 w-6 text-white" />
           </div>
           <div>
-            <p className="font-semibold text-foreground">@itemtrcom</p>
+            <p className="font-semibold text-foreground">@itemsatiscom</p>
             <p className="text-xs text-muted-foreground">25K+ Takipçi</p>
           </div>
         </div>
         <p className="flex-1 text-center text-sm text-muted-foreground sm:text-left">
-          Çekiliş, kampanya ve güncel haberler için İtemTR.com duyurularını takip edin.
+          {`Çekiliş, kampanya ve güncel haberler için ${SITE_NAME} duyurularını takip edin.`}
         </p>
         <Link to="/giveaways" className="shrink-0 rounded-xl bg-gradient-to-r from-purple-500 via-pink-500 to-orange-400 px-6 py-2.5 text-sm font-semibold text-white transition-opacity hover:opacity-90">
           Takip Et

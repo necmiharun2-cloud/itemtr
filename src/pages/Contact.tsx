@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Mail, Phone, MapPin, Clock, Send } from "lucide-react";
 import { toast } from "sonner";
+import { SUPPORT_EMAIL, SUPPORT_PHONE_DISPLAY } from "@/lib/site-brand";
 
 const Contact = () => {
   const [form, setForm] = useState({ name: "", email: "", subject: "", message: "" });
@@ -41,8 +42,8 @@ const Contact = () => {
 
             <div className="space-y-4">
               {[
-                { icon: Mail, label: "E-posta", value: "destek@itemtr.com" },
-                { icon: Phone, label: "Telefon", value: "0850 123 45 67" },
+                { icon: Mail, label: "E-posta", value: SUPPORT_EMAIL },
+                { icon: Phone, label: "Telefon", value: SUPPORT_PHONE_DISPLAY },
                 { icon: MapPin, label: "Adres", value: "İstanbul, Türkiye" },
                 { icon: Clock, label: "Çalışma Saatleri", value: "7/24 Destek" },
               ].map((item, i) => (

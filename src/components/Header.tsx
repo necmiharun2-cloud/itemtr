@@ -12,6 +12,7 @@ import {
   type NotificationItem,
 } from "@/lib/notifications";
 import { toast } from "sonner";
+import { SITE_LOGO_ACCENT, SITE_LOGO_PRIMARY, SITE_SUBTAG } from "@/lib/site-brand";
 
 const searchSuggestions = [
   "Steam Cüzdan Kodu", "Valorant VP", "Roblox Robux", "Netflix Hesap",
@@ -67,10 +68,16 @@ const Header = () => {
     };
 
     syncHeaderState();
-    window.addEventListener("itemtr-notifications-updated", () => syncHeaderState());
-    window.addEventListener("storage", () => syncHeaderState());
-    window.addEventListener(AUTH_CHANGED_EVENT, () => syncHeaderState());
-    window.addEventListener("itemtr-messaging-updated", () => syncHeaderState());
+
+    const onNotificationsUpdated = () => syncHeaderState();
+    const onStorageChanged = () => syncHeaderState();
+    const onAuthChanged = () => syncHeaderState();
+    const onMessagingUpdated = () => syncHeaderState();
+
+    window.addEventListener("itemtr-notifications-updated", onNotificationsUpdated);
+    window.addEventListener("storage", onStorageChanged);
+    window.addEventListener(AUTH_CHANGED_EVENT, onAuthChanged);
+    window.addEventListener("itemtr-messaging-updated", onMessagingUpdated);
 
     const handleOutside = (event: MouseEvent) => {
       const target = event.target as Node;
@@ -80,10 +87,10 @@ const Header = () => {
 
     document.addEventListener("mousedown", handleOutside);
     return () => {
-      window.removeEventListener("itemtr-notifications-updated", () => syncHeaderState());
-      window.removeEventListener("storage", () => syncHeaderState());
-      window.removeEventListener(AUTH_CHANGED_EVENT, () => syncHeaderState());
-      window.removeEventListener("itemtr-messaging-updated", () => syncHeaderState());
+      window.removeEventListener("itemtr-notifications-updated", onNotificationsUpdated);
+      window.removeEventListener("storage", onStorageChanged);
+      window.removeEventListener(AUTH_CHANGED_EVENT, onAuthChanged);
+      window.removeEventListener("itemtr-messaging-updated", onMessagingUpdated);
       document.removeEventListener("mousedown", handleOutside);
     };
   }, []);
@@ -130,9 +137,10 @@ const Header = () => {
             </div>
             <div className="hidden sm:flex flex-col">
               <span className="text-xl font-black text-foreground tracking-tight leading-none">
-                İtem<span className="text-primary">TR</span>
+                {SITE_LOGO_PRIMARY}
+                <span className="text-primary">{SITE_LOGO_ACCENT}</span>
               </span>
-              <span className="text-[10px] text-muted-foreground font-medium tracking-wider">GÜVENLİ OYUN PAZARYERİ</span>
+              <span className="text-[10px] text-muted-foreground font-medium tracking-wider">{SITE_SUBTAG}</span>
             </div>
           </div>
         </Link>
@@ -190,12 +198,6 @@ const Header = () => {
                       </button>
                     ))}
                   </div>
-                  <li>
-                    <Link to="/register" className="flex items-center gap-1 text-sm text-muted-foreground transition-colors hover:text-foreground">
-                      <ChevronRight className="h-3 w-3" />
-                      Kayıt Ol
-                    </Link>
-                  </li>
                 </div>
               ) : filteredSuggestions.length > 0 ? (
                 filteredSuggestions.map((s) => (

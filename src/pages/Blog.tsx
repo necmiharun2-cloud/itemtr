@@ -4,6 +4,7 @@ import Header from "@/components/Header";
 import NavMenu from "@/components/NavMenu";
 import Footer from "@/components/Footer";
 import { Calendar, Eye, Tag } from "lucide-react";
+import { SITE_NAME } from "@/lib/site-brand";
 
 const featuredPost = {
   title: "CS2 Yeni Güncelleme: Nuke Haritası Yenilendi!",
@@ -20,7 +21,7 @@ const posts = [
   { id: 3, title: "Steam Yaz İndirimleri Ne Zaman?", excerpt: "Steam'in 2026 yaz indirimlerinin başlangıç tarihi belli oldu...", date: "27 Mar 2026", views: 5600, category: "Steam", gradient: "from-blue-500 to-cyan-600" },
   { id: 4, title: "Discord Nitro Kazanmanın Güvenli Yolları", excerpt: "Yasal yollarla Discord Nitro kazanmanın en etkili yöntemleri...", date: "26 Mar 2026", views: 8900, category: "Discord", gradient: "from-indigo-500 to-purple-600" },
   { id: 5, title: "Brawl Stars Sezon 28 Yenilikleri", excerpt: "Yeni brawler, haritalar ve oyun modları hakkında detaylı bilgi...", date: "25 Mar 2026", views: 1800, category: "Brawl Stars", gradient: "from-yellow-500 to-orange-600" },
-  { id: 6, title: "İtemTR.com Güvenlik İpuçları", excerpt: "Hesabınızı korumak için alınması gereken önlemler ve güvenlik ayarları...", date: "24 Mar 2026", views: 3400, category: "Rehber", gradient: "from-emerald-500 to-teal-600" },
+  { id: 6, title: `${SITE_NAME} güvenlik ipuçları`, excerpt: "Hesabınızı korumak için alınması gereken önlemler ve güvenlik ayarları...", date: "24 Mar 2026", views: 3400, category: "Rehber", gradient: "from-emerald-500 to-teal-600" },
 ];
 
 const categories = ["Tümü", "Oyun Haberleri", "Rehber", "Valorant", "Steam", "Discord", "Brawl Stars"];

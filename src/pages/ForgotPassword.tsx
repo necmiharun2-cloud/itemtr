@@ -77,9 +77,11 @@ const ForgotPassword = () => {
                 </div>
                 <button
                   onClick={handleSendReset}
-                  className="w-full py-2.5 rounded-xl bg-primary text-primary-foreground text-sm font-semibold hover:bg-primary/90 transition-colors"
+                  disabled={loading}
+                  className="w-full py-2.5 rounded-xl bg-primary text-primary-foreground text-sm font-semibold hover:bg-primary/90 transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
                 >
-                  Sıfırlama Bağlantısı Gönder
+                  {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : null}
+                  {loading ? "Gönderiliyor..." : "Sıfırlama Bağlantısı Gönder"}
                 </button>
               </div>
             ) : (

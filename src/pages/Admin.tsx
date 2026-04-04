@@ -410,7 +410,7 @@ const Admin = () => {
       updateKocucePvpCache(items);
       setImportedKocuceCount(items.length);
       setKocuceHtml("");
-      toast.success(`${items.length} adet PVP sunucusu (Son 1 yıl) başarıyla içe aktarıldı ve İtemTR.com olarak güncellendi.`);
+      toast.success(`${items.length} adet PVP sunucusu (son 1 yıl) içe aktarıldı ve marka metinleri güncellendi.`);
     } catch (error) {
       console.error(error);
       toast.error("İçerik işlenirken bir hata oluştu. Lütfen forum listesini kopyaladığınızdan emin olun.");
@@ -930,7 +930,7 @@ const Admin = () => {
                             </div>
                           )}
                         </div>
-                        <p className="text-[10px] text-muted-foreground italic mt-1 uppercase font-bold opacity-60">Boş bırakırsanız varsayılan İtemTR.com logosu kullanılır.</p>
+                        <p className="text-[10px] text-muted-foreground italic mt-1 uppercase font-bold opacity-60">Boş bırakırsanız varsayılan bot logosu kullanılır.</p>
                       </div>
                       <div className="flex items-center justify-between p-4 rounded-2xl bg-white/5 border border-white/5">
                         <span className="text-xs font-black text-white italic uppercase">Otomatik Yorum</span>

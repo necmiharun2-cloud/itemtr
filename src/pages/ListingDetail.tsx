@@ -17,6 +17,7 @@ import { supabase } from "@/lib/supabase";
 import { cn } from "@/lib/utils";
 import { startChatFromListing } from "@/lib/messaging";
 import { isListingFavorited, toggleListingFavorite, saveListingReportLocally } from "@/lib/listing-actions";
+import { SITE_LEGAL_LABEL, SITE_NAME } from "@/lib/site-brand";
 import {
   Dialog,
   DialogContent,
@@ -121,25 +122,25 @@ const ListingDetail = () => {
         return;
       }
 
-      // BOT- ile başlayan test / kilitli ilanlar: kayıt yoksa yine de vitrin göster
+      // BOT- ile başlayan ilanlar için fallback
       if (String(id).startsWith("BOT-")) {
         setListing({
           id: String(id),
-          title: "Bot test ilanı",
-          category: "CS2 / HESAP SATIŞI",
-          game: "CS2",
-          seller: "İtemTR Bot",
+          title: "İlan Yükleniyor",
+          category: "Genel",
+          game: "Genel",
+          seller: SITE_NAME,
           sellerId: null,
           sellerAvatar: "",
-          price: "₺99,90",
-          description: "Bu ilan bot tarafından oluşturulmuş test ilanıdır.",
-          features: ["Test"],
+          price: "₺0,00",
+          description: "Bu ilan şu anda yüklenemiyor. Lütfen daha sonra tekrar deneyin.",
+          features: [],
           image: BOT_LOGO_IMAGE,
           imageColor: "bg-gradient-to-br from-slate-700/40 to-slate-900/50",
           views: 0,
           favorites: 0,
           createdAt: "Az önce",
-          tags: ["test"],
+          tags: [],
           oldPrice: "",
           reviews: [],
           sellerExperience: 0,
@@ -491,7 +492,7 @@ const ListingDetail = () => {
                 </Button>
                 {isLocked && (
                   <p className="text-[11px] text-center text-amber-500/90 font-bold uppercase tracking-wide leading-snug">
-                    Gerçek kullanıcılar bu bot ilanını satın alamaz.
+                    Bu ürün şu anda satışa kapalıdır.
                   </p>
                 )}
                 {!canPurchase && !isLocked && (
@@ -727,7 +728,7 @@ const ListingDetail = () => {
               </div>
             </div>
 
-            {/* İtemTR.com Güvenli Alışveriş Card */}
+            {/* Güvenli alışveriş (alıcı koruması) */}
             <div className="bg-card rounded-2xl border border-border p-5 space-y-3 relative overflow-hidden group hover:border-success/30 transition-colors">
               <div className="absolute top-0 left-0 w-1 h-full bg-success opacity-40"></div>
               <div className="flex items-start gap-4">
@@ -735,9 +736,9 @@ const ListingDetail = () => {
                   <Shield className="h-5 w-5 text-success" />
                 </div>
                 <div className="space-y-1">
-                  <h4 className="text-sm font-bold text-foreground">İtemTR.com Güvenli Alışveriş</h4>
+                  <h4 className="text-sm font-bold text-foreground">{SITE_LEGAL_LABEL} güvenli alışveriş</h4>
                   <p className="text-[11px] text-muted-foreground leading-relaxed">
-                    İtemTR.com alışveriş süreci sona erene kadar ücretinizi güvene almaktadır. Alışveriş sonrası süreçte iade, teknik destek gibi konulardan ürünün satıcısı sorumludur.
+                    {SITE_LEGAL_LABEL}, alışveriş süreci tamamlanana kadar ödemenizi güvende tutar. Teslimat sonrası iade ve teknik konularda öncelikle satıcı ile iletişime geçmeniz gerekir.
                   </p>
                 </div>
               </div>

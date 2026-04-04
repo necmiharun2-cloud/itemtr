@@ -16,22 +16,24 @@ import {
 } from "lucide-react";
 import { Link } from "react-router-dom";
 
+const categoryThumb = (slug: string) => `https://picsum.photos/seed/itemsatis-${slug}/400/240`;
+
 const categories = [
-  { label: "Hesap Satışı", count: "148,240 İlan", icon: Users, color: "from-blue-600 to-indigo-600", image: "https://itemtr.com/storage/images/categories/hesap-satis-1588600000.webp" },
-  { label: "Item & Skin", count: "542,100 İlan", icon: Gamepad2, color: "from-orange-600 to-red-600", image: "https://itemtr.com/storage/images/categories/item-skin-1588600000.webp" },
-  { label: "ID Yükleme (Top Up)", count: "12,500 İlan", icon: Smartphone, color: "from-emerald-600 to-teal-600", image: "https://itemtr.com/storage/images/categories/yukleme-1588600000.webp" },
-  { label: "Epin", count: "85,600 İlan", icon: Zap, color: "from-yellow-500 to-amber-600", image: "https://itemtr.com/storage/images/categories/epin-1588600000.webp" },
-  { label: "Boost Hizmetleri", count: "4,900 İlan", icon: Zap, color: "from-purple-600 to-indigo-700", image: "https://itemtr.com/storage/images/categories/boost-1588600000.webp" },
-  { label: "Yazılım Ürünleri", count: "1,450 İlan", icon: Briefcase, color: "from-cyan-600 to-blue-700", image: "https://itemtr.com/storage/images/categories/yazilim-1588600000.webp" },
-  { label: "Hediye Kartları", count: "3,200 İlan", icon: Gift, color: "from-pink-600 to-rose-700", image: "https://itemtr.com/storage/images/categories/hediye-kart-1588600000.webp" },
-  { label: "CD Key", count: "7,100 İlan", icon: Key, color: "from-slate-600 to-slate-800", image: "https://itemtr.com/storage/images/categories/cd-key-1588600000.webp" },
-  { label: "Oyun Parası", count: "116,700 İlan", icon: CircleDollarSign, color: "from-green-600 to-emerald-700", image: "https://itemtr.com/storage/images/categories/para-1588600000.webp" },
-  { label: "Sosyal Medya", count: "42,300 İlan", icon: Globe, color: "from-indigo-600 to-blue-800", image: "https://itemtr.com/storage/images/categories/sosyal-1588600000.webp" },
-  { label: "Freelancer", count: "2,100 İlan", icon: UserSquare2, color: "from-violet-600 to-purple-800", image: "https://itemtr.com/storage/images/categories/freelancer-1588600000.webp" },
-  { label: "Reklam Satışı", count: "1,300 İlan", icon: Megaphone, color: "from-red-600 to-rose-800", image: "https://itemtr.com/storage/images/categories/reklam-1588600000.webp" },
-  { label: "Platformlar", count: "5,400 İlan", icon: Monitor, color: "from-teal-600 to-cyan-800", image: "https://itemtr.com/storage/images/categories/platformlar-1588600000.webp" },
-  { label: "Random Hesaplar", count: "125,000 İlan", icon: Dices, color: "from-orange-500 to-red-700", image: "https://itemtr.com/storage/images/categories/random-1588600000.webp" },
-  { label: "Diğer Ürünler", count: "8,900 İlan", icon: Layers, color: "from-stone-600 to-stone-800", image: "https://itemtr.com/storage/images/categories/diger-1588600000.webp" },
+  { label: "Hesap Satışı", count: "148,240 İlan", icon: Users, color: "from-blue-600 to-indigo-600", image: categoryThumb("hesap") },
+  { label: "Item & Skin", count: "542,100 İlan", icon: Gamepad2, color: "from-orange-600 to-red-600", image: categoryThumb("item-skin") },
+  { label: "ID Yükleme (Top Up)", count: "12,500 İlan", icon: Smartphone, color: "from-emerald-600 to-teal-600", image: categoryThumb("topup") },
+  { label: "Epin", count: "85,600 İlan", icon: Zap, color: "from-yellow-500 to-amber-600", image: categoryThumb("epin") },
+  { label: "Boost Hizmetleri", count: "4,900 İlan", icon: Zap, color: "from-purple-600 to-indigo-700", image: categoryThumb("boost") },
+  { label: "Yazılım Ürünleri", count: "1,450 İlan", icon: Briefcase, color: "from-cyan-600 to-blue-700", image: categoryThumb("yazilim") },
+  { label: "Hediye Kartları", count: "3,200 İlan", icon: Gift, color: "from-pink-600 to-rose-700", image: categoryThumb("hediye") },
+  { label: "CD Key", count: "7,100 İlan", icon: Key, color: "from-slate-600 to-slate-800", image: categoryThumb("cdkey") },
+  { label: "Oyun Parası", count: "116,700 İlan", icon: CircleDollarSign, color: "from-green-600 to-emerald-700", image: categoryThumb("para") },
+  { label: "Sosyal Medya", count: "42,300 İlan", icon: Globe, color: "from-indigo-600 to-blue-800", image: categoryThumb("sosyal") },
+  { label: "Freelancer", count: "2,100 İlan", icon: UserSquare2, color: "from-violet-600 to-purple-800", image: categoryThumb("freelancer") },
+  { label: "Reklam Satışı", count: "1,300 İlan", icon: Megaphone, color: "from-red-600 to-rose-800", image: categoryThumb("reklam") },
+  { label: "Platformlar", count: "5,400 İlan", icon: Monitor, color: "from-teal-600 to-cyan-800", image: categoryThumb("platform") },
+  { label: "Random Hesaplar", count: "125,000 İlan", icon: Dices, color: "from-orange-500 to-red-700", image: categoryThumb("random") },
+  { label: "Diğer Ürünler", count: "8,900 İlan", icon: Layers, color: "from-stone-600 to-stone-800", image: categoryThumb("diger") },
 ];
 
 const FullCategoryGrid = () => {

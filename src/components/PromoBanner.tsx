@@ -10,8 +10,8 @@ const PromoBanner = () => {
     <div className="relative bg-gradient-to-r from-primary to-accent text-white">
       <div className="container flex items-center justify-center gap-2 py-2 pr-12 text-sm font-medium">
         <Sparkles className="h-4 w-4" />
-        <span>🔥 %95'e varan indirimler ve öne çıkan vitrin paketleri seni bekliyor.</span>
-        <Link to="/category" className="ml-1 font-bold underline">Göz Atın →</Link>
+        <span>3D Secure ile güvenli ödeme — vitrin ve e-pin fırsatları seni bekliyor.</span>
+        <Link to="/ilan-pazari" className="ml-1 font-bold underline">İlan pazarı →</Link>
         <button onClick={() => setVisible(false)} className="absolute right-4 top-1/2 -translate-y-1/2 hover:opacity-70">
           <X className="h-4 w-4" />
         </button>

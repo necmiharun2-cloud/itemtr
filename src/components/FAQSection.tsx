@@ -11,17 +11,18 @@ import {
   History,
   Zap,
 } from "lucide-react";
+import { SITE_LEGAL_LABEL, SITE_NAME } from "@/lib/site-brand";
 
 const faqs = [
   {
-    question: "İtemTR.com Üzerinden Nasıl Alışveriş Yapılır?",
+    question: `${SITE_LEGAL_LABEL} üzerinden nasıl alışveriş yapılır?`,
     answer: "İstediğiniz ilanı seçip 'Satın Al' butonuna tıklayarak bakiyenizle veya kredi kartınızla ödeme yapabilirsiniz. Ödeme sonrası satıcı ile otomatik olarak sohbet penceresi açılır ve teslimat süreci başlar.",
     icon: ShoppingCart,
     color: "text-primary"
   },
   {
     question: "Güvenli Ticaret Sistemi (Escrow) Nedir?",
-    answer: "Ödediğiniz tutar siz teslimatı onaylayana kadar İtemTR.com güvenli havuz hesabında bloke edilir. Ürünü sorunsuz teslim aldığınızda onay verirsiniz ve tutar satıcıya aktarılır.",
+    answer: `Ödediğiniz tutar siz teslimatı onaylayana kadar ${SITE_LEGAL_LABEL} güvenli havuz hesabında bloke edilir. Ürünü sorunsuz teslim aldığınızda onay verirsiniz ve tutar satıcıya aktarılır.`,
     icon: ShieldCheck,
     color: "text-success"
   },
@@ -39,13 +40,13 @@ const faqs = [
   },
   {
     question: "İlan Botu Nedir ve Nasıl Çalışır?",
-    answer: "İtemTR.com İlan Botu, sistemimizin SEO ve canlılık değerlerini artırmak için otomatik olarak gerçek zamanlı verilerle ilan üretir. Bu ilanlar sistem tarafından kontrol edilir ve güvenlidir.",
+    answer: `${SITE_NAME} ilan botu, SEO ve canlılık için otomatik verilerle ilan üretir. Bu ilanlar sistem tarafından kontrol edilir.`,
     icon: Zap,
     color: "text-indigo-400"
   },
   {
     question: "Mağaza Açmak Ücretli mi?",
-    answer: "İtemTR.com'da mağaza açmak tamamen ücretsizdir. Sadece yaptığınız başarılı satışlardan kategoriye özel düşük komisyon oranları alınır.",
+    answer: `${SITE_NAME}'te mağaza açmak ücretsizdir. Başarılı satışlardan kategoriye özel komisyon (%7 standart) alınır.`,
     icon: History,
     color: "text-rose-400"
   }

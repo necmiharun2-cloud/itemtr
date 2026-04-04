@@ -4,6 +4,7 @@ import TopBar from "@/components/TopBar";
 import Header from "@/components/Header";
 import NavMenu from "@/components/NavMenu";
 import Footer from "@/components/Footer";
+import { SITE_LEGAL_LABEL } from "@/lib/site-brand";
 
 type LegalContent = {
   title: string;
@@ -15,12 +16,12 @@ const legalContent: Record<string, LegalContent> = {
   kvkk: {
     title: "KVKK Aydınlatma Metni",
     icon: ShieldCheck,
-    text: "İtemTR.com olarak kişisel verilerinizin güvenliğine önem veriyoruz. 6698 sayılı Kişisel Verilerin Korunması Kanunu kapsamında, verileriniz sadece platformun işleyişi ve yasal zorunluluklar çerçevesinde işlenmektedir. Verileriniz üçüncü şahıslarla asla paylaşılmaz...",
+    text: `${SITE_LEGAL_LABEL} olarak kişisel verilerinizin güvenliğine önem veriyoruz. 6698 sayılı Kişisel Verilerin Korunması Kanunu kapsamında, verileriniz sadece platformun işleyişi ve yasal zorunluluklar çerçevesinde işlenmektedir. Verileriniz üçüncü şahıslarla asla paylaşılmaz...`,
   },
   terms: {
     title: "Kullanım Koşulları",
     icon: Scale,
-    text: "İtemTR.com platformunu kullanarak aşağıdaki şartları kabul etmiş sayılırsınız. Platform, alıcı ve satıcıyı buluşturan bir aracı hizmet sağlayıcıdır. Dolandırıcılık, hesap hırsızlığı ve yasadışı faaliyetler kesinlikle yasaktır ve yasal işlem başlatma hakkımız saklıdır...",
+    text: `${SITE_LEGAL_LABEL} platformunu kullanarak aşağıdaki şartları kabul etmiş sayılırsınız. Platform, alıcı ve satıcıyı buluşturan bir aracı hizmet sağlayıcıdır. Dolandırıcılık, hesap hırsızlığı ve yasadışı faaliyetler kesinlikle yasaktır ve yasal işlem başlatma hakkımız saklıdır...`,
   },
   refund: {
     title: "İade ve İptal Politikası",
@@ -30,12 +31,12 @@ const legalContent: Record<string, LegalContent> = {
   sales: {
     title: "Mesafeli Satış Sözleşmesi",
     icon: FileText,
-    text: "İşbu sözleşme, İtemTR.com üzerinden yapılan tüm dijital alışverişlerin hukuki zeminini oluşturur. Alıcı, ödeme yaptığı andan itibaren teslimat sürecinin başladığını ve dijital içeriklerin iadesinin yönetmeliğe göre kısıtlı olduğunu kabul eder...",
+    text: `İşbu sözleşme, ${SITE_LEGAL_LABEL} üzerinden yapılan tüm dijital alışverişlerin hukuki zeminini oluşturur. Alıcı, ödeme yaptığı andan itibaren teslimat sürecinin başladığını ve dijital içeriklerin iadesinin yönetmeliğe göre kısıtlı olduğunu kabul eder...`,
   },
   "distance-selling": {
     title: "Mesafeli Satış Sözleşmesi",
     icon: FileText,
-    text: "İşbu sözleşme, İtemTR.com üzerinden yapılan tüm dijital alışverişlerin hukuki zeminini oluşturur. Alıcı, ödeme yaptığı andan itibaren teslimat sürecinin başladığını ve dijital içeriklerin iadesinin yönetmeliğe göre kısıtlı olduğunu kabul eder...",
+    text: `İşbu sözleşme, ${SITE_LEGAL_LABEL} üzerinden yapılan tüm dijital alışverişlerin hukuki zeminini oluşturur. Alıcı, ödeme yaptığı andan itibaren teslimat sürecinin başladığını ve dijital içeriklerin iadesinin yönetmeliğe göre kısıtlı olduğunu kabul eder...`,
   },
 };
 
@@ -108,7 +109,7 @@ const Legal = () => {
                       <Scale className="h-5 w-5 text-primary" /> YASAL UYUMLULUK
                     </h3>
                     <p className="text-xs font-black uppercase tracking-widest text-muted-foreground opacity-60">
-                      İtemTR.com, 5651 sayılı kanun kapsamında "Yer Sağlayıcı" olarak faaliyet göstermektedir.
+                      {SITE_LEGAL_LABEL}, 5651 sayılı kanun kapsamında &quot;Yer Sağlayıcı&quot; olarak faaliyet göstermektedir.
                     </p>
                     <Link to="/support">
                       <button className="mt-4 flex items-center gap-2 text-[10px] font-black uppercase tracking-[0.4em] text-primary transition-opacity hover:opacity-80">

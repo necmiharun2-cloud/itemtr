@@ -1,19 +1,21 @@
+import { SITE_NAME } from "@/lib/site-brand";
+
 const SeoBlock = () => {
   return (
     <div className="bg-card rounded-2xl border border-border p-6 space-y-3">
-      <h2 className="text-lg font-bold text-foreground">İtemTR.com Nedir?</h2>
+      <h2 className="text-lg font-bold text-foreground">{SITE_NAME} nedir?</h2>
       <div className="text-sm text-muted-foreground space-y-2 leading-relaxed">
         <p>
-          İtemTR.com, Türkiye'nin en güvenilir dijital ürün alım-satım platformudur. Oyun hesapları, CD-Key, hediye kartları,
-          sosyal medya hizmetleri ve daha fazlasını güvenle alıp satabilirsiniz.
+          {SITE_NAME}, Türkiye&apos;de oyuncular için dijital ürün alım-satım platformudur: oyun hesapları, e-pin, CD-Key,
+          hediye kartları, oyun parası ve sosyal medya hizmetleri tek yerde.
         </p>
         <p>
-          Platformumuzda CS2, Valorant, Roblox, PUBG Mobile, Brawl Stars gibi popüler oyunların item ve hesaplarını,
-          Steam, Netflix, Spotify gibi platformların abonelik ve hediye kartlarını bulabilirsiniz.
+          CS2, Valorant, Roblox, PUBG Mobile, Brawl Stars gibi oyunlarda item ve hesap; Steam, Netflix, Spotify ve benzeri
+          platformlarda kod ve kart ihtiyaçlarınızı karşılayabilirsiniz.
         </p>
         <p>
-          256-bit SSL şifreleme, güvenli ödeme sistemi ve 7/24 müşteri desteği ile alışverişlerinizi güvenle yapabilirsiniz.
-          Satıcı puanlama sistemi ve İtemTR.com Güvencesi ile her işlemde korunuyorsunuz.
+          SSL, 3D Secure destekli ödeme, alıcı korumalı işlem akışı ve 7/24 destek ile güvenli alışveriş; satıcı
+          değerlendirmeleri ve {SITE_NAME} güvencesi ile şeffaf pazar deneyimi sunar.
         </p>
       </div>
     </div>
