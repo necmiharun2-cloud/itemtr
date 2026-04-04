@@ -234,6 +234,27 @@ export const clearBotHistory = () => {
   window.dispatchEvent(new CustomEvent("itemtr-marketplace-updated"));
 };
 
+export const bulkUpdateBotImages = (newUrl: string) => {
+  const currentHistory = getBotHistory();
+  if (currentHistory.length === 0) return false;
+  localStorage.setItem(BOT_BACKUP_KEY, JSON.stringify(currentHistory));
+  const updatedHistory = currentHistory.map(listing => ({ ...listing, image: newUrl }));
+  localStorage.setItem(BOT_HISTORY_KEY, JSON.stringify(updatedHistory));
+  localStorage.setItem(BOT_BULK_OVERRIDE_KEY, newUrl);
+  window.dispatchEvent(new CustomEvent("itemtr-marketplace-updated"));
+  return true;
+};
+
+export const undoBotImageUpdate = () => {
+  const backup = localStorage.getItem(BOT_BACKUP_KEY);
+  if (!backup) return false;
+  localStorage.setItem(BOT_HISTORY_KEY, backup);
+  localStorage.removeItem(BOT_BACKUP_KEY);
+  localStorage.removeItem(BOT_BULK_OVERRIDE_KEY);
+  window.dispatchEvent(new CustomEvent("itemtr-marketplace-updated"));
+  return true;
+};
+
 const initializeBotAutomation = () => {
   if (typeof window === "undefined") return;
   const runAutomation = () => {
