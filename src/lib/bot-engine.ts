@@ -1,6 +1,7 @@
 import { getMarketplaceListings, type MarketplaceListing, type ListingSection } from "./marketplace";
 import { sanitizeContent, getCombinedPvpPool, type KocuceItem } from "./rss-service";
 import { ListingVisualDirector } from "./visual-director";
+import { fetchItemSatisListings, getRandomItemSatisListing, type ItemSatisListing } from "./itemsatis-scraper";
 
 let kocucePvpCache: KocuceItem[] = (() => {
   const cached = localStorage.getItem("itemtr_kocuce_cache");
@@ -277,10 +278,51 @@ export const getBotListingById = (listingId?: string | null) => listingId ? getB
 export const isBotListingLocked = (listingId?: string | number | null) => { if (!listingId) return false; const normalizedId = String(listingId); if (normalizedId.startsWith("BOT-")) return true; const listing = getBotListingById(normalizedId); return Boolean(listing?.isBot); };
 
 export const generateBotListing = async (): Promise<BotListing> => { 
-  const minPrice = Number(localStorage.getItem("itemtr_bot_min_price") || 10); 
-  const maxPrice = Number(localStorage.getItem("itemtr_bot_max_price") || 2000); 
   const selectedCategory = localStorage.getItem("itemtr_bot_category") || "all"; 
 
+  // ItemSatış'tan gerçek ilan çek
+  const itemsatisListing = await getRandomItemSatisListing(selectedCategory);
+  
+  if (!itemsatisListing) {
+    // Fallback: Eğer itemsatis'ten veri gelmezse eski sistemi kullan
+    return generateFallbackBotListing(selectedCategory);
+  }
+
+  const seller = reserveUniqueBotName(); 
+  const id = `BOT-${Math.random().toString(36).slice(2, 7).toUpperCase()}`;
+
+  const newListing: BotListing = { 
+    id, 
+    title: itemsatisListing.title, 
+    category: itemsatisListing.category, 
+    seller, 
+    sellerAvatar: `https://ui-avatars.com/api/?name=${encodeURIComponent(seller)}&background=111827&color=FACC15`, 
+    price: itemsatisListing.price,
+    image: itemsatisListing.image,
+    description: itemsatisListing.description, 
+    seoKeywords: [itemsatisListing.category.toLowerCase(), "bot", "itemsatis"], 
+    isAutoDelivery: itemsatisListing.category !== "PVP Serverlar" && Math.random() > 0.3, 
+    isBot: true, 
+    isPurchasable: false, 
+    availabilityMessage: "Ürün Mevcut Değil", 
+    stock: 0, 
+    tags: ["Güvenilir", "Hızlı", "ItemSatış"], 
+    reviews: [],
+    bgColor: "bg-[#16a34a]", 
+    isVitrin: Math.random() < 0.25, 
+    sellerExperience: 5, 
+    createdTimestamp: Date.now()
+  }; 
+  
+  const history = getBotHistory();
+  history.unshift(newListing); 
+  localStorage.setItem(BOT_HISTORY_KEY, JSON.stringify(history.slice(0, 500))); 
+  window.dispatchEvent(new CustomEvent("itemtr-marketplace-updated")); 
+  return newListing; 
+};
+
+// Fallback listing generator when itemsatis is unavailable
+const generateFallbackBotListing = (selectedCategory: string): BotListing => {
   let categoryPool = selectedCategory !== "all" ? selectedCategory : pickRandom(Object.keys(CATEGORY_CONTENT));
   if (categoryPool.toLowerCase().includes("pvp")) categoryPool = "PVP Serverlar";
 
@@ -299,18 +341,31 @@ export const generateBotListing = async (): Promise<BotListing> => {
   const rawTitle = customTitle || pickRandom(content.titles);
   const description = customDesc || pickRandom(content.descriptions);
   const title = rawTitle + (Math.random() > 0.4 ? pickRandom([" ⭐", " [OTO]", " %100", " ✅", " 🔥"]) : "");
-  const price = categoryPool === "PVP Serverlar" ? "Tanıtım" : `${Math.floor(Math.random() * (maxPrice - minPrice) + minPrice)} ₺`;
+  const price = categoryPool === "PVP Serverlar" ? "Tanıtım" : `${Math.floor(Math.random() * 1000 + 100)} ₺`;
   const seller = reserveUniqueBotName(); 
   const id = `BOT-${Math.random().toString(36).slice(2, 7).toUpperCase()}`;
 
   const newListing: BotListing = { 
     id, 
-    title, category: categoryPool, seller, sellerAvatar: `https://ui-avatars.com/api/?name=${encodeURIComponent(seller)}&background=111827&color=FACC15`, price, 
-    image: await getHdImageForListing(categoryPool, title, id, description),
-    description, seoKeywords: [categoryPool.toLowerCase(), "bot"], 
-    isAutoDelivery: categoryPool !== "PVP Serverlar" && Math.random() > 0.3, isBot: true, isPurchasable: false, availabilityMessage: "Ürün Mevcut Değil", stock: 0, 
-    tags: ["Güvenilir", "Hızlı"], reviews: [],
-    bgColor: "bg-[#16a34a]", isVitrin: Math.random() < 0.25, sellerExperience: 5, createdTimestamp: Date.now()
+    title, 
+    category: categoryPool, 
+    seller, 
+    sellerAvatar: `https://ui-avatars.com/api/?name=${encodeURIComponent(seller)}&background=111827&color=FACC15`, 
+    price,
+    image: pickRandom(CURATED_GAME_IMAGES[categoryPool] || CURATED_GAME_IMAGES["default"]),
+    description, 
+    seoKeywords: [categoryPool.toLowerCase(), "bot"], 
+    isAutoDelivery: categoryPool !== "PVP Serverlar" && Math.random() > 0.3, 
+    isBot: true, 
+    isPurchasable: false, 
+    availabilityMessage: "Ürün Mevcut Değil", 
+    stock: 0, 
+    tags: ["Güvenilir", "Hızlı"], 
+    reviews: [],
+    bgColor: "bg-[#16a34a]", 
+    isVitrin: Math.random() < 0.25, 
+    sellerExperience: 5, 
+    createdTimestamp: Date.now()
   }; 
   
   const history = getBotHistory();
