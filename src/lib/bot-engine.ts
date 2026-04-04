@@ -302,58 +302,58 @@ const getUserTags = () => {
   return parsedTags.length > 0 ? parsedTags : DEFAULT_BOT_TAGS;
 };
 
-// Category + Game specific image collections - Using reliable Picsum.photos
+// Category + Game specific image collections - Using reliable placehold.co
 const CATEGORY_IMAGES: Record<string, string[]> = {
   "CS2": [
-    "https://picsum.photos/seed/cs21/800/600",
-    "https://picsum.photos/seed/cs22/800/600",
-    "https://picsum.photos/seed/cs23/800/600",
-    "https://picsum.photos/seed/cs24/800/600",
-    "https://picsum.photos/seed/cs25/800/600",
+    "https://placehold.co/800x600/1e293b/f59e0b?text=CS2",
+    "https://placehold.co/800x600/0f172a/3b82f6?text=Counter+Strike",
+    "https://placehold.co/800x600/1e293b/22c55e?text=Steam",
+    "https://placehold.co/800x600/0f172a/ef4444?text=Gaming",
+    "https://placehold.co/800x600/1e293b/a855f7?text=CS2+Hesap",
   ],
   "Valorant": [
-    "https://picsum.photos/seed/val1/800/600",
-    "https://picsum.photos/seed/val2/800/600",
-    "https://picsum.photos/seed/val3/800/600",
-    "https://picsum.photos/seed/val4/800/600",
-    "https://picsum.photos/seed/val5/800/600",
+    "https://placehold.co/800x600/1e293b/f43f5e?text=Valorant",
+    "https://placehold.co/800x600/0f172a/f59e0b?text=Riot+Games",
+    "https://placehold.co/800x600/1e293b/10b981?text=VP",
+    "https://placehold.co/800x600/0f172a/3b82f6?text=Hesap",
+    "https://placehold.co/800x600/1e293b/ec4899?text=Skin",
   ],
   "League of Legends": [
-    "https://picsum.photos/seed/lol1/800/600",
-    "https://picsum.photos/seed/lol2/800/600",
-    "https://picsum.photos/seed/lol3/800/600",
-    "https://picsum.photos/seed/lol4/800/600",
-    "https://picsum.photos/seed/lol5/800/600",
+    "https://placehold.co/800x600/1e293b/f59e0b?text=LoL",
+    "https://placehold.co/800x600/0f172a/3b82f6?text=League",
+    "https://placehold.co/800x600/1e293b/22c55e?text=RP",
+    "https://placehold.co/800x600/0f172a/a855f7?text=Kostum",
+    "https://placehold.co/800x600/1e293b/f43f5e?text=Hesap",
   ],
   "Roblox": [
-    "https://picsum.photos/seed/rob1/800/600",
-    "https://picsum.photos/seed/rob2/800/600",
-    "https://picsum.photos/seed/rob3/800/600",
-    "https://picsum.photos/seed/rob4/800/600",
+    "https://placehold.co/800x600/1e293b/22c55e?text=Roblox",
+    "https://placehold.co/800x600/0f172a/f59e0b?text=Robux",
+    "https://placehold.co/800x600/1e293b/3b82f6?text=Game",
+    "https://placehold.co/800x600/0f172a/ec4899?text=Item",
   ],
   "PVP Serverlar": [
-    "https://picsum.photos/seed/pvp1/800/600",
-    "https://picsum.photos/seed/pvp2/800/600",
-    "https://picsum.photos/seed/pvp3/800/600",
-    "https://picsum.photos/seed/pvp4/800/600",
-    "https://picsum.photos/seed/pvp5/800/600",
-    "https://picsum.photos/seed/pvp6/800/600",
-    "https://picsum.photos/seed/pvp7/800/600",
-    "https://picsum.photos/seed/pvp8/800/600",
+    "https://placehold.co/800x600/1e293b/f59e0b?text=Metin2",
+    "https://placehold.co/800x600/0f172a/dc2626?text=Knight+Online",
+    "https://placehold.co/800x600/1e293b/22c55e?text=PVP+Server",
+    "https://placehold.co/800x600/0f172a/3b82f6?text=Minecraft",
+    "https://placehold.co/800x600/1e293b/a855f7?text=Server",
+    "https://placehold.co/800x600/0f172a/f43f5e?text=MMORPG",
+    "https://placehold.co/800x600/1e293b/10b981?text=Oyun",
+    "https://placehold.co/800x600/0f172a/f59e0b?text=Tanitim",
   ],
   "PUBG Mobile": [
-    "https://picsum.photos/seed/pubg1/800/600",
-    "https://picsum.photos/seed/pubg2/800/600",
-    "https://picsum.photos/seed/pubg3/800/600",
-    "https://picsum.photos/seed/pubg4/800/600",
-    "https://picsum.photos/seed/pubg5/800/600",
+    "https://placehold.co/800x600/1e293b/f59e0b?text=PUBG",
+    "https://placehold.co/800x600/0f172a/22c55e?text=Mobile",
+    "https://placehold.co/800x600/1e293b/3b82f6?text=UC",
+    "https://placehold.co/800x600/0f172a/dc2626?text=Hesap",
+    "https://placehold.co/800x600/1e293b/a855f7?text=Skin",
   ],
   "default": [
-    "https://picsum.photos/seed/game1/800/600",
-    "https://picsum.photos/seed/game2/800/600",
-    "https://picsum.photos/seed/game3/800/600",
-    "https://picsum.photos/seed/game4/800/600",
-    "https://picsum.photos/seed/game5/800/600",
+    "https://placehold.co/800x600/1e293b/f59e0b?text=Gaming",
+    "https://placehold.co/800x600/0f172a/3b82f6?text=Oyun",
+    "https://placehold.co/800x600/1e293b/22c55e?text=ItemTR",
+    "https://placehold.co/800x600/0f172a/ec4899?text=Market",
+    "https://placehold.co/800x600/1e293b/a855f7?text=Hesap",
   ]
 };
 
@@ -530,12 +530,12 @@ const SPECIAL_TAGS = [
 const CUSTOM_IMAGES = [
   "/itemtr-bot-logo.svg",
   "/itemtr-logo.png",
-  "https://images.unsplash.com/photo-1612287230217-969b698c8d13?w=800&auto=format&fit=crop&q=60",
-  "https://images.unsplash.com/photo-1552820728-8b83bb6b2b0a?w=800&auto=format&fit=crop&q=60",
+  "https://placehold.co/800x600/1e293b/f59e0b?text=Gaming",
+  "https://placehold.co/800x600/0f172a/10b981?text=ItemTR",
 ];
 
   const customImage = localStorage.getItem("itemtr_bot_custom_image");
-  const pvpImage = "https://images.unsplash.com/photo-1542751371-adc38448a05e?q=80&w=1200&auto=format&fit=crop"; // Better gaming theme
+  const pvpImage = "https://placehold.co/800x600/0f172a/f59e0b?text=PVP+Server"; // Reliable gaming placeholder
 
   const history = getBotHistory(); 
   
