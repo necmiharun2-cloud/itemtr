@@ -1,8 +1,9 @@
 /**
- * ItemTR.com Scraper Service
- * 
- * itemtr.com'dan ilanları, başlıkları, açıklamaları ve görselleri çeker
+ * Bot ilan havuzu: kategori bazlı mock ilanlar + normalize edilmiş filtreleme.
+ * (Tarayıcıdan doğrudan ItemSatis scrape CORS nedeniyle kullanılmıyor.)
  */
+
+import { normalizeBotCategoryFilter } from "./category-normalize";
 
 export interface ItemSatisListing {
   id: string;
@@ -62,6 +63,26 @@ const CATEGORY_IMAGES: Record<string, string[]> = {
   "Steam": [
     "https://images.unsplash.com/photo-1550745165-9bc0b252726f?w=800&q=80",
     "https://images.unsplash.com/photo-1538481199705-c710c4e965fc?w=800&q=80",
+    "https://images.unsplash.com/photo-1511512578047-dfb367046420?w=800&q=80"
+  ],
+  "Metin2": [
+    "https://images.unsplash.com/photo-1542751371-29b95d39f6d4?w=800&q=80",
+    "https://images.unsplash.com/photo-1599713191704-9b7e7262c7fa?w=800&q=80",
+    "https://images.unsplash.com/photo-1518709268805-4e9042af9f23?w=800&q=80"
+  ],
+  "Knight Online": [
+    "https://images.unsplash.com/photo-1542759564-82f6f1f0e4f3?w=800&q=80",
+    "https://images.unsplash.com/photo-1542751371-29b95d39f6d4?w=800&q=80",
+    "https://images.unsplash.com/photo-1550745165-9bc0b252726f?w=800&q=80"
+  ],
+  "Minecraft": [
+    "https://images.unsplash.com/photo-1606144042614-b2417e99c4e3?w=800&q=80",
+    "https://images.unsplash.com/photo-1614294148960-9aa740632a87?w=800&q=80",
+    "https://images.unsplash.com/photo-1563089145-599997674d42?w=800&q=80"
+  ],
+  "Discord": [
+    "https://images.unsplash.com/photo-1611605698335-8b1569810432?w=800&q=80",
+    "https://images.unsplash.com/photo-1550745165-9bc0b252726f?w=800&q=80",
     "https://images.unsplash.com/photo-1511512578047-dfb367046420?w=800&q=80"
   ],
   "default": [
@@ -273,15 +294,49 @@ export const fetchItemSatisListings = async (category?: string): Promise<ItemSat
         image: getCategoryImage("Valorant", 3),
         category: "Valorant",
         seller: "BoostAccount"
+      },
+      {
+        id: "IS-019",
+        title: "Metin2 50 GB Won Paketi — Anında Teslimat",
+        description: "Metin2 Won satışı\n- Güvenilir teslimat\n- Anında işlem\n- İtemTR kalitesi",
+        price: "420 ₺",
+        image: getCategoryImage("Metin2", 0),
+        category: "Metin2",
+        seller: "WonTR"
+      },
+      {
+        id: "IS-020",
+        title: "Knight Online USKO Usko Gold — Hızlı Teslim",
+        description: "Knight Online para birimi\n- Güvenli transfer\n- 7/24 aktif",
+        price: "350 ₺",
+        image: getCategoryImage("Knight Online", 0),
+        category: "Knight Online",
+        seller: "KOGold"
+      },
+      {
+        id: "IS-021",
+        title: "Minecraft Java Edition Premium Hesap",
+        description: "Minecraft Java\n- İlk mail\n- Anında teslim\n- Garantili",
+        price: "199 ₺",
+        image: getCategoryImage("Minecraft", 0),
+        category: "Minecraft",
+        seller: "BlockStore"
+      },
+      {
+        id: "IS-022",
+        title: "Discord Nitro 1 Aylık — Hediye Link",
+        description: "Discord Nitro\n- 1 ay süre\n- Hediye linki ile teslim",
+        price: "89 ₺",
+        image: getCategoryImage("Discord", 0),
+        category: "Discord",
+        seller: "NitroTR"
       }
     ];
 
-    // Filter by category if specified
-    if (category && category !== "all") {
-      return mockListings.filter(item => 
-        item.category.toLowerCase() === category.toLowerCase() ||
-        (category === "PVP Serverlar" && (item.category.includes("PVP") || item.title.toLowerCase().includes("metin") || item.title.toLowerCase().includes("knight")))
-      );
+    const filterCanon = normalizeBotCategoryFilter(category || "all");
+
+    if (filterCanon !== "all") {
+      return mockListings.filter((item) => item.category === filterCanon);
     }
 
     return mockListings;

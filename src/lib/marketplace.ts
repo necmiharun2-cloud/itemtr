@@ -52,6 +52,7 @@ const hoursAgo = (hours: number) => now - hours * 60 * 60 * 1000;
 export const CATEGORY_STORIES = [
   { label: "CS2", slug: "cs2", color: "from-orange-500 to-yellow-500", image: "https://images.unsplash.com/photo-1542751110-97427bbecf20?q=80&w=800&auto=format&fit=crop" },
   { label: "Valorant", slug: "valorant", color: "from-red-500 to-pink-500", image: "https://images.unsplash.com/photo-1624138784614-87fd1b6528f2?q=80&w=800&auto=format&fit=crop" },
+  { label: "League of Legends", slug: "league-of-legends", color: "from-cyan-500 to-blue-600", image: "https://images.unsplash.com/photo-1518709268805-4e9042af9f23?q=80&w=800&auto=format&fit=crop" },
   { label: "Steam", slug: "steam", color: "from-blue-500 to-cyan-500", image: "https://images.unsplash.com/photo-1511512578047-dfb367046420?q=80&w=800&auto=format&fit=crop" },
   { label: "Roblox", slug: "roblox", color: "from-green-500 to-emerald-500", image: "https://images.unsplash.com/photo-1614294148960-9aa740632a87?q=80&w=800&auto=format&fit=crop" },
   { label: "Minecraft", slug: "minecraft", color: "from-amber-500 to-orange-500", image: "https://images.unsplash.com/photo-1606144042614-b2417e99c4e3?q=80&w=800&auto=format&fit=crop" },
@@ -350,6 +351,7 @@ export const slugifyCategory = (value: string) =>
 const normalizeStoryKey = (value?: string | null) => {
   const normalized = slugifyCategory(value || "");
   if (normalized.includes("valorant") || normalized === "vp") return "valorant";
+  if (normalized.includes("league") || normalized.includes("legends") || normalized === "lol") return "league-of-legends";
   if (normalized.includes("cs2") || normalized.includes("counter-strike")) return "cs2";
   if (normalized.includes("steam")) return "steam";
   if (normalized.includes("roblox")) return "roblox";

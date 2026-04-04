@@ -113,20 +113,23 @@ export class ListingVisualDirector {
     if (lc.includes("league") || /\blol\b/.test(lc) || /\blol\b/.test(lt) || lc.includes("legends")) return "League of Legends";
     if (lc.includes("roblox") || lt.includes("roblox")) return "Roblox";
     if (lc.includes("pubg") || lt.includes("pubg")) return "PUBG Mobile";
+    if (lc === "metin2" || lc.startsWith("metin2 ") || (lc.includes("metin2") && !lt.includes("sunucu") && !lt.includes("server") && !lt.includes("emek"))) {
+      return "Metin2";
+    }
+    if (lc.includes("knight") && lc.includes("online")) return "Knight Online";
+    if (lc.includes("minecraft") || lt.includes("minecraft")) return "Minecraft";
+    if (lc.includes("discord") || lt.includes("discord")) return "Discord";
     if (
       lc.includes("pvp") ||
-      lc.includes("metin") ||
-      lc.includes("knight") ||
+      (lc.includes("metin") && (lt.includes("sunucu") || lt.includes("server") || lt.includes("emek") || lt.includes("official") || lt.includes("acilis"))) ||
+      (lc.includes("knight") && (lt.includes("sunucu") || lt.includes("pvp") || lt.includes("server"))) ||
       lc.includes("sunucu") ||
-      lt.includes("metin2") ||
-      lt.includes("knight online") ||
-      lt.includes("emek server")
+      lt.includes("emek server") ||
+      (lt.includes("metin2") && (lt.includes("sunucu") || lt.includes("server") || lt.includes("emek") || lt.includes("açılış") || lt.includes("acilis")))
     ) {
       return "PVP Serverlar";
     }
-    if (lc.includes("steam") || lt.includes("steam") || lc.includes("cd-key") || lc.includes("cd key")) return "default";
-    if (lc.includes("minecraft") || lt.includes("minecraft")) return "Roblox";
-    if (lc.includes("discord") || lt.includes("discord nitro")) return "default";
+    if (lc.includes("steam") || lt.includes("steam") || lc.includes("cd-key") || lc.includes("cd key")) return "Steam";
     if (lc.includes("epic") || lt.includes("fortnite")) return "default";
 
     return "default";

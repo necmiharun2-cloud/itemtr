@@ -1,7 +1,8 @@
-import { getMarketplaceListings, type MarketplaceListing, type ListingSection } from "./marketplace";
+import { type ListingSection } from "./marketplace";
 import { sanitizeContent, getCombinedPvpPool, type KocuceItem } from "./rss-service";
 import { ListingVisualDirector } from "./visual-director";
 import { fetchItemSatisListings, getRandomItemSatisListing, type ItemSatisListing } from "./itemsatis-scraper";
+import { gameLabelForCanonicalCategory, normalizeBotCategoryFilter } from "./category-normalize";
 
 let kocucePvpCache: KocuceItem[] = (() => {
   const cached = localStorage.getItem("itemtr_kocuce_cache");
@@ -16,14 +17,14 @@ let kocucePvpCache: KocuceItem[] = (() => {
   return getCombinedPvpPool();
 })();
 
-const BOT_IMAGE_CACHE_KEY = "itemtr_bot_image_cache_v12_hd_ai"; // HD AI görseller + kategori eşlemesi
+const BOT_IMAGE_CACHE_KEY = "itemtr_bot_image_cache_v13_hd_ai"; // kategori normalize + güvenli filigran
 const BOT_STATS_KEY = "itemtr_bot_stats";
 const BOT_HISTORY_KEY = "itemtr_bot_listings";
 const BOT_USED_NAMES_KEY = "itemtr_bot_used_names";
 const BOT_BACKUP_KEY = "itemtr_bot_listings_backup";
 const BOT_BULK_OVERRIDE_KEY = "itemtr_bot_bulk_override_url";
 const BOT_IMAGE_VERSION_KEY = "itemtr_bot_image_version";
-const CURRENT_IMAGE_VERSION = "pro-visual-v12-hd-ai";
+const CURRENT_IMAGE_VERSION = "pro-visual-v13-hd-ai";
 export const BOT_LOGO_IMAGE = "/itemtr-bot-logo.svg";
 
 type BotImageCache = Record<string, string>;
@@ -59,6 +60,31 @@ const CURATED_GAME_IMAGES: Record<string, string[]> = {
     "https://images.unsplash.com/photo-1511512578047-dfb367046420", // Pro Gaming
     "https://images.unsplash.com/photo-1614294148960-9aa740632a87"  // colorful world
   ],
+  "PUBG Mobile": [
+    "https://images.unsplash.com/photo-1542751371-29b95d39f6d4",
+    "https://images.unsplash.com/photo-1511512578047-dfb367046420",
+    "https://images.unsplash.com/photo-1550745165-9bc0b252726f"
+  ],
+  "Steam": [
+    "https://images.unsplash.com/photo-1550745165-9bc0b252726f",
+    "https://images.unsplash.com/photo-1538481199705-c710c4e965fc",
+    "https://images.unsplash.com/photo-1511512578047-dfb367046420"
+  ],
+  "Knight Online": [
+    "https://images.unsplash.com/photo-1542759564-82f6f1f0e4f3",
+    "https://images.unsplash.com/photo-1542751371-29b95d39f6d4",
+    "https://images.unsplash.com/photo-1550745165-9bc0b252726f"
+  ],
+  "Minecraft": [
+    "https://images.unsplash.com/photo-1606144042614-b2417e99c4e3",
+    "https://images.unsplash.com/photo-1614294148960-9aa740632a87",
+    "https://images.unsplash.com/photo-1563089145-599997674d42"
+  ],
+  "Discord": [
+    "https://images.unsplash.com/photo-1611605698335-8b1569810432",
+    "https://images.unsplash.com/photo-1550745165-9bc0b252726f",
+    "https://images.unsplash.com/photo-1511512578047-dfb367046420"
+  ],
   "default": [
     "https://images.unsplash.com/photo-1542751371-adc38448a05e",
     "https://images.unsplash.com/photo-1511512578047-dfb367046420"
@@ -86,30 +112,30 @@ const watermarkImage = async (imageUrl: string): Promise<string> => {
     const img = new Image();
     img.crossOrigin = "anonymous";
     img.onload = () => {
-      const canvas = document.createElement("canvas");
-      const ctx = canvas.getContext("2d");
-      if (!ctx) {
+      try {
+        const canvas = document.createElement("canvas");
+        const ctx = canvas.getContext("2d");
+        if (!ctx) {
+          resolve(imageUrl);
+          return;
+        }
+
+        canvas.width = img.width;
+        canvas.height = img.height;
+        ctx.drawImage(img, 0, 0);
+
+        const fontSize = Math.max(10, Math.floor(canvas.height * 0.025));
+        ctx.font = `500 ${fontSize}px sans-serif`;
+        ctx.textAlign = "right";
+        ctx.textBaseline = "bottom";
+        ctx.fillStyle = "rgba(255, 255, 255, 0.4)";
+        ctx.fillText("ITEMTR.COM", canvas.width - 20, canvas.height - 15);
+
+        resolve(canvas.toDataURL("image/jpeg", 0.9));
+      } catch {
+        // CORS / tainted canvas: orijinal URL kullan
         resolve(imageUrl);
-        return;
       }
-
-      canvas.width = img.width;
-      canvas.height = img.height;
-
-      // Draw original image
-      ctx.drawImage(img, 0, 0);
-
-      // Small subtle watermark in corner
-      const fontSize = Math.floor(canvas.height * 0.025); // Very small, 2.5% of height
-      ctx.font = `500 ${fontSize}px sans-serif`;
-      ctx.textAlign = "right";
-      ctx.textBaseline = "bottom";
-      
-      // Subtle semi-transparent watermark
-      ctx.fillStyle = "rgba(255, 255, 255, 0.4)";
-      ctx.fillText("ITEMTR.COM", canvas.width - 20, canvas.height - 15);
-
-      resolve(canvas.toDataURL("image/jpeg", 0.9));
     };
     img.onerror = () => {
       console.warn("Resim yüklenemedi, orjinal URL kullanılıyor:", imageUrl);
@@ -119,19 +145,24 @@ const watermarkImage = async (imageUrl: string): Promise<string> => {
   });
 };
 
+const MAX_POLLINATIONS_PROMPT_LEN = 1200;
+
 const getHdImageForListing = async (category: string, title: string, listingId: string, description: string = ""): Promise<string> => {
   const cache = getBotImageCache();
-  const cacheKey = `pro_${listingId}_v12_hd`;
+  const resolvedCat = ListingVisualDirector.resolveCategoryKey(category, title);
+  const cacheKey = `pro_${listingId}_v13_${resolvedCat}`;
 
   if (cache[cacheKey]) return cache[cacheKey];
 
-  // Visual Director: kategori + başlık + açıklamaya göre prompt (Pollinations = görsel AI)
-  const professionalPrompt = ListingVisualDirector.generatePrompt({
+  let professionalPrompt = ListingVisualDirector.generatePrompt({
     category,
     title,
     description,
     style: "premium",
   });
+  if (professionalPrompt.length > MAX_POLLINATIONS_PROMPT_LEN) {
+    professionalPrompt = professionalPrompt.slice(0, MAX_POLLINATIONS_PROMPT_LEN);
+  }
 
   const seed = Math.floor(Math.random() * 1_000_000);
   const imageUrl = `https://image.pollinations.ai/prompt/${encodeURIComponent(professionalPrompt)}?width=1920&height=1080&nologo=true&seed=${seed}`;
@@ -184,6 +215,7 @@ export interface BotListing {
   availabilityMessage?: string;
   stock?: number;
   tags?: string[];
+  game?: string;
   reviews?: Review[];
   discount?: string;
   bgColor?: string;
@@ -234,11 +266,37 @@ const CATEGORY_CONTENT: Record<string, { titles: string[], descriptions: string[
   "PUBG Mobile": {
     titles: ["PUBG Mobile 60 Level Buz Diyari Hesap", "PUBG Mobile Firavun 4. Seviye Hesap"],
     descriptions: ["🔫 Buz Diyarı M416 (Max)\n- Seviye: 65\n- Bağlantılar: Sadece Mail"]
+  },
+  "Steam": {
+    titles: ["Steam 500 TL Cüzdan Kodu - Anında Teslimat", "Steam Oyun Keyi — Bölge TR"],
+    descriptions: ["🎮 STEAM\n- Anında teslim\n- TRY bölge"]
+  },
+  "Metin2": {
+    titles: ["Metin2 25 GB Won Paketi", "Metin2 Item Seti — Hızlı Teslim"],
+    descriptions: ["Metin2 güvenli teslimat\n- 7/24 aktif"]
+  },
+  "Knight Online": {
+    titles: ["Knight Online Gold Paketi", "USKO KC — Anında Transfer"],
+    descriptions: ["KO güvenli trade\n- Hızlı teslim"]
+  },
+  "Minecraft": {
+    titles: ["Minecraft Java Premium Hesap", "Minecraft + Bedrock Bundle"],
+    descriptions: ["Java erişimi\n- İlk mail"]
+  },
+  "Discord": {
+    titles: ["Discord Nitro 1 Ay", "Discord Server Boost Paketi"],
+    descriptions: ["Nitro hediye linki\n- Anında teslim"]
   }
 };
 
 const safeJSONParse = <T,>(value: string | null, fallback: T): T => { if (!value) return fallback; try { return JSON.parse(value) as T; } catch { return fallback; } };
 const pickRandom = <T,>(items: T[]): T => items[Math.floor(Math.random() * items.length)];
+
+const curatedFallbackForCategory = (category: string, title: string) => {
+  const key = ListingVisualDirector.resolveCategoryKey(category, title);
+  const pool = CURATED_GAME_IMAGES[key] || CURATED_GAME_IMAGES[category] || CURATED_GAME_IMAGES["default"];
+  return pickRandom(pool);
+};
 const getUsedBotNames = () => safeJSONParse<string[]>(localStorage.getItem(BOT_USED_NAMES_KEY), []);
 const setUsedBotNames = (names: string[]) => localStorage.setItem(BOT_USED_NAMES_KEY, JSON.stringify(names));
 const reserveUniqueBotName = () => { const used = getUsedBotNames(); const remaining = BOT_NAME_POOL.filter((name) => !used.includes(name)); if (remaining.length === 0) { const freshPick = pickRandom(BOT_NAME_POOL); setUsedBotNames([freshPick]); return freshPick; } const nextName = pickRandom(remaining); setUsedBotNames([...used, nextName]); return nextName; };
@@ -261,13 +319,12 @@ export const getBotListingById = (listingId?: string | null) => listingId ? getB
 export const isBotListingLocked = (listingId?: string | number | null) => { if (!listingId) return false; const normalizedId = String(listingId); if (normalizedId.startsWith("BOT-")) return true; const listing = getBotListingById(normalizedId); return Boolean(listing?.isBot); };
 
 export const generateBotListing = async (): Promise<BotListing> => { 
-  const selectedCategory = localStorage.getItem("itemtr_bot_category") || "all"; 
+  const selectedCategory = normalizeBotCategoryFilter(localStorage.getItem("itemtr_bot_category") || "all");
+  const customImg = (localStorage.getItem("itemtr_bot_custom_image") || "").trim();
 
-  // ItemTR'dan gerçek ilan çek
-  const itemsatisListing = await getRandomItemSatisListing(selectedCategory);
-  
+  const itemsatisListing = await getRandomItemSatisListing(selectedCategory === "all" ? undefined : selectedCategory);
+
   if (!itemsatisListing) {
-    // Fallback: Eğer itemtr'den veri gelmezse eski sistemi kullan
     return await generateFallbackBotListing(selectedCategory);
   }
 
@@ -278,6 +335,7 @@ export const generateBotListing = async (): Promise<BotListing> => {
     id,
     title: itemsatisListing.title,
     category: itemsatisListing.category,
+    game: gameLabelForCanonicalCategory(itemsatisListing.category),
     seller,
     sellerAvatar: `https://ui-avatars.com/api/?name=${encodeURIComponent(seller)}&background=111827&color=FACC15`,
     price: itemsatisListing.price,
@@ -297,15 +355,26 @@ export const generateBotListing = async (): Promise<BotListing> => {
     createdTimestamp: Date.now(),
   };
 
-  try {
-    newListing.image = await getHdImageForListing(
-      newListing.category,
-      newListing.title,
-      newListing.id,
-      newListing.description,
-    );
-  } catch (e) {
-    console.warn("[Bot] HD AI görsel üretilemedi, yedek görsel kullanılıyor:", e);
+  if (customImg) {
+    newListing.image = customImg;
+  } else {
+    try {
+      const hd = await getHdImageForListing(
+        newListing.category,
+        newListing.title,
+        newListing.id,
+        newListing.description,
+      );
+      if (hd && !isPlaceholderBotImage(hd)) newListing.image = hd;
+      else newListing.image = curatedFallbackForCategory(newListing.category, newListing.title);
+    } catch (e) {
+      console.warn("[Bot] HD AI görsel üretilemedi, yedek görsel kullanılıyor:", e);
+      newListing.image = curatedFallbackForCategory(newListing.category, newListing.title);
+    }
+  }
+
+  if (!newListing.image?.trim()) {
+    newListing.image = curatedFallbackForCategory(newListing.category, newListing.title);
   }
 
   const history = getBotHistory();
@@ -317,8 +386,10 @@ export const generateBotListing = async (): Promise<BotListing> => {
 
 // Fallback listing generator when itemsatis is unavailable
 const generateFallbackBotListing = async (selectedCategory: string): Promise<BotListing> => {
-  let categoryPool = selectedCategory !== "all" ? selectedCategory : pickRandom(Object.keys(CATEGORY_CONTENT));
+  const normalized = normalizeBotCategoryFilter(selectedCategory);
+  let categoryPool = normalized !== "all" ? normalized : pickRandom(Object.keys(CATEGORY_CONTENT));
   if (categoryPool.toLowerCase().includes("pvp")) categoryPool = "PVP Serverlar";
+  if (!CATEGORY_CONTENT[categoryPool]) categoryPool = pickRandom(Object.keys(CATEGORY_CONTENT));
 
   let customTitle = "";
   let customDesc = "";
@@ -339,12 +410,14 @@ const generateFallbackBotListing = async (selectedCategory: string): Promise<Bot
   const seller = reserveUniqueBotName(); 
   const id = `BOT-${Math.random().toString(36).slice(2, 7).toUpperCase()}`;
 
-  const fallbackStockImage = pickRandom(CURATED_GAME_IMAGES[categoryPool] || CURATED_GAME_IMAGES["default"]);
+  const customImgFb = (localStorage.getItem("itemtr_bot_custom_image") || "").trim();
+  const fallbackStockImage = curatedFallbackForCategory(categoryPool, title);
 
   const newListing: BotListing = {
     id,
     title,
     category: categoryPool,
+    game: gameLabelForCanonicalCategory(categoryPool),
     seller,
     sellerAvatar: `https://ui-avatars.com/api/?name=${encodeURIComponent(seller)}&background=111827&color=FACC15`,
     price,
@@ -364,12 +437,20 @@ const generateFallbackBotListing = async (selectedCategory: string): Promise<Bot
     createdTimestamp: Date.now(),
   };
 
-  try {
-    newListing.image = await getHdImageForListing(newListing.category, newListing.title, newListing.id, newListing.description);
-  } catch (e) {
-    console.warn("[Bot] HD AI görsel üretilemedi, kürasyonlu görsel kullanılıyor:", e);
-    newListing.image = fallbackStockImage;
+  if (customImgFb) {
+    newListing.image = customImgFb;
+  } else {
+    try {
+      const hd = await getHdImageForListing(newListing.category, newListing.title, newListing.id, newListing.description);
+      if (hd && !isPlaceholderBotImage(hd)) newListing.image = hd;
+      else newListing.image = fallbackStockImage;
+    } catch (e) {
+      console.warn("[Bot] HD AI görsel üretilemedi, kürasyonlu görsel kullanılıyor:", e);
+      newListing.image = fallbackStockImage;
+    }
   }
+
+  if (!newListing.image?.trim()) newListing.image = fallbackStockImage;
 
   const history = getBotHistory();
   history.unshift(newListing); 
