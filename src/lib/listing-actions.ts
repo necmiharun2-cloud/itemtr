@@ -1,5 +1,6 @@
 import { supabase } from "@/lib/supabase";
 import type { AppUser } from "@/lib/auth";
+import { getBotListingById } from "@/lib/bot-engine";
 
 const LOCAL_FAV_KEY = "itemtr_local_favorite_listing_ids";
 const REPORTS_KEY = "itemtr_listing_reports";
@@ -80,6 +81,56 @@ export type ListingReportPayload = {
 };
 
 type StoredReport = ListingReportPayload & { createdAt: string };
+
+export type FavoriteListRow = {
+  listingId: string;
+  title: string;
+  price: string;
+  seller: string;
+};
+
+/** Panel / favoriler sekmesi için: Supabase + yerel (bot) favori ilanları */
+export const getFavoriteListRows = async (user: AppUser): Promise<FavoriteListRow[]> => {
+  const rows: FavoriteListRow[] = [];
+  const seen = new Set<string>();
+
+  if (isUuid(user.id)) {
+    const { data: favs, error } = await supabase.from("favorites").select("listing_id").eq("user_id", user.id);
+    if (!error && favs?.length) {
+      const ids = favs.map((f) => f.listing_id).filter(Boolean) as string[];
+      if (ids.length) {
+        const { data: listings } = await supabase
+          .from("listings")
+          .select("id, title, price, profiles:seller_id(username)")
+          .in("id", ids);
+        for (const L of listings || []) {
+          const id = String(L.id);
+          seen.add(id);
+          const profile = L.profiles as { username?: string } | null | undefined;
+          rows.push({
+            listingId: id,
+            title: String(L.title),
+            price: `₺${Number(L.price).toLocaleString("tr-TR", { minimumFractionDigits: 2 })}`,
+            seller: profile?.username || "Satıcı",
+          });
+        }
+      }
+    }
+  }
+
+  for (const lid of readLocalFavoriteSet()) {
+    if (seen.has(lid)) continue;
+    seen.add(lid);
+    const bot = getBotListingById(lid);
+    if (bot) {
+      rows.push({ listingId: lid, title: bot.title, price: bot.price, seller: bot.seller });
+    } else {
+      rows.push({ listingId: lid, title: `İlan: ${lid}`, price: "—", seller: "—" });
+    }
+  }
+
+  return rows;
+};
 
 export const saveListingReportLocally = (payload: ListingReportPayload) => {
   const row: StoredReport = { ...payload, createdAt: new Date().toISOString() };

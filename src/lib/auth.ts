@@ -297,14 +297,34 @@ export const getCurrentUser = async (): Promise<AppUser | null> => {
   if (typeof window === "undefined") return null;
   seedAuth();
 
-  try {
-    const { data } = await supabase.auth.getUser();
-    if (data.user) {
-      const appUser = await mapSupabaseUser(data.user);
+  const hydrateFromAuthUser = async (authUser: import("@supabase/supabase-js").User | null) => {
+    if (!authUser) return null;
+    try {
+      const appUser = await mapSupabaseUser(authUser);
       upsertLocalUser(appUser);
       cacheSession(appUser);
       return appUser;
+    } catch {
+      return null;
     }
+  };
+
+  // Önce yerel oturum (hızlı); getUser() sunucuya gider ve yavaş/kilitli ağda yüzeyi kilitleyebilir.
+  try {
+    const { data: sessionData } = await supabase.auth.getSession();
+    const fromSession = await hydrateFromAuthUser(sessionData.session?.user ?? null);
+    if (fromSession) {
+      void supabase.auth.getUser().catch(() => {});
+      return fromSession;
+    }
+  } catch {
+    // Devam: getUser veya local
+  }
+
+  try {
+    const { data } = await supabase.auth.getUser();
+    const fromUser = await hydrateFromAuthUser(data.user ?? null);
+    if (fromUser) return fromUser;
   } catch {
     // Fall back to local session.
   }

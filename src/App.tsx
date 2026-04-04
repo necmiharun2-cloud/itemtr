@@ -1,4 +1,5 @@
-import { useEffect, useLayoutEffect, useState } from "react";
+import { useEffect, useLayoutEffect, useRef, useState } from "react";
+import { Loader2 } from "lucide-react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Navigate, Route, Routes, useLocation } from "react-router-dom";
 import { Toaster as Sonner } from "@/components/ui/sonner";
@@ -42,6 +43,27 @@ import Contact from "./pages/Contact.tsx";
 
 const queryClient = new QueryClient();
 
+const AUTH_CHECK_MS = 12_000;
+
+const withAuthTimeout = async <T,>(promise: Promise<T>): Promise<T> => {
+  let timeoutId: ReturnType<typeof setTimeout> | undefined;
+  const timeout = new Promise<never>((_, reject) => {
+    timeoutId = setTimeout(() => reject(new Error("auth-timeout")), AUTH_CHECK_MS);
+  });
+  try {
+    return await Promise.race([promise, timeout]);
+  } finally {
+    if (timeoutId !== undefined) clearTimeout(timeoutId);
+  }
+};
+
+const AuthLoadingScreen = () => (
+  <div className="min-h-screen bg-background flex flex-col items-center justify-center gap-3 text-muted-foreground">
+    <Loader2 className="h-10 w-10 animate-spin text-primary" aria-hidden />
+    <p className="text-sm">Oturum kontrol ediliyor…</p>
+  </div>
+);
+
 const Bootstrap = () => {
   useEffect(() => {
     seedAuth();
@@ -66,17 +88,28 @@ const ProtectedRoute = ({ children, adminOnly = false }: { children: JSX.Element
   const location = useLocation();
   const [user, setUser] = useState<any>(null);
   const [loading, setLoading] = useState(true);
+  const cancelled = useRef(false);
 
   useEffect(() => {
+    cancelled.current = false;
+    setLoading(true);
     const checkAuth = async () => {
-      const currentUser = await getCurrentUser();
-      setUser(currentUser);
-      setLoading(false);
+      try {
+        const currentUser = await withAuthTimeout(getCurrentUser());
+        if (!cancelled.current) setUser(currentUser);
+      } catch {
+        if (!cancelled.current) setUser(null);
+      } finally {
+        if (!cancelled.current) setLoading(false);
+      }
     };
-    checkAuth();
+    void checkAuth();
+    return () => {
+      cancelled.current = true;
+    };
   }, [location.pathname]);
 
-  if (loading) return <div className="min-h-screen bg-background" />;
+  if (loading) return <AuthLoadingScreen />;
 
   if (!user) {
     const target = `${location.pathname}${location.search}`;
@@ -102,17 +135,28 @@ const GuestOnlyRoute = ({ children }: { children: JSX.Element }) => {
   const location = useLocation();
   const [user, setUser] = useState<any>(null);
   const [loading, setLoading] = useState(true);
+  const cancelled = useRef(false);
 
   useEffect(() => {
+    cancelled.current = false;
+    setLoading(true);
     const checkAuth = async () => {
-      const currentUser = await getCurrentUser();
-      setUser(currentUser);
-      setLoading(false);
+      try {
+        const currentUser = await withAuthTimeout(getCurrentUser());
+        if (!cancelled.current) setUser(currentUser);
+      } catch {
+        if (!cancelled.current) setUser(null);
+      } finally {
+        if (!cancelled.current) setLoading(false);
+      }
     };
-    checkAuth();
+    void checkAuth();
+    return () => {
+      cancelled.current = true;
+    };
   }, [location.pathname]);
 
-  if (loading) return <div className="min-h-screen bg-background" />;
+  if (loading) return <AuthLoadingScreen />;
 
   const redirectTarget = new URLSearchParams(location.search).get("redirect") || "/dashboard";
   return user ? <Navigate to={redirectTarget} replace /> : children;

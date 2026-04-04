@@ -109,7 +109,11 @@ export const getConversations = async (): Promise<Conversation[]> => {
     const result: Conversation[] = [];
 
     for (const conv of conversations) {
-      const otherParticipant = conv.participant_1.id === user.id ? conv.participant_2 : conv.participant_1;
+      const p1 = conv.participant_1;
+      const p2 = conv.participant_2;
+      if (!p1?.id || !p2?.id) continue;
+
+      const otherParticipant = p1.id === user.id ? p2 : p1;
       const otherLabel = otherParticipant.username || otherParticipant.name || "Satıcı";
 
       const { data: messages, error: msgError } = await supabase

@@ -44,7 +44,8 @@ import { getLevelTier } from "@/lib/levels";
 import { createSupportConversation, getConversationSummary, getSupportTicketsForCurrentUser, getVisibleConversations, MESSAGING_EVENT, viewerIdentityIds } from "@/lib/messaging";
 import { getWalletTransactions, getUserBalance } from "@/lib/wallet";
 import { supabase } from "@/lib/supabase";
-import { seedNotifications, getNotifications, markAllNotificationsRead } from "@/lib/notifications";
+import { seedNotifications, getNotifications, markAllNotificationsRead, type NotificationItem } from "@/lib/notifications";
+import { getFavoriteListRows, toggleListingFavorite, type FavoriteListRow } from "@/lib/listing-actions";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
@@ -141,11 +142,6 @@ const orders = [
   { id: "ORD-9910", item: "Steam 100 TL Kod", status: "Onay Bekliyor", amount: "₺100,00" },
 ];
 
-const favorites = [
-  { id: 10, title: "Global Elite CS2 Hesap", price: "₺199,90", seller: "TopSeller" },
-  { id: 11, title: "5000 Robux Hemen Teslim", price: "₺1.099,90", seller: "RZShop" },
-];
-
 const loginHistory = [
   { id: 1, ip: "176.234.11.90", device: "Windows Chrome", date: "Bugün 14:20", status: "Başarılı" },
   { id: 2, ip: "176.234.11.90", device: "iPhone Safari", date: "Dün 22:15", status: "Başarılı" },
@@ -183,6 +179,7 @@ const Dashboard = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [levelInfo, setLevelInfo] = useState(() => getLevelTier(0));
   const [messagePreview, setMessagePreview] = useState<Array<{id: string; user: string; text: string; time: string}>>([]);
+  const [favoriteRows, setFavoriteRows] = useState<FavoriteListRow[]>([]);
 
   useEffect(() => {
     const savedListings = localStorage.getItem("itemtr_user_listings");
@@ -286,33 +283,50 @@ const Dashboard = () => {
         setActiveListings(formattedListings.length > 0 ? formattedListings : initialListings);
       }
       
-      setSupportTickets((await getSupportTicketsForCurrentUser()).map((ticket) => ({
-        id: ticket.id,
-        subject: ticket.subject,
-        status: ticket.status,
-        date: ticket.date,
-        type: ticket.category,
-      })));
-      
-      setLevelInfo(getLevelTier(current.levelState.xp));
-      
-      setMessagePreview(
-        (await getVisibleConversations())
-          .slice(0, 3)
-          .map((conversation) => {
-            const summary = getConversationSummary(conversation, viewerIdentityIds(current));
-            return {
-              id: conversation.id,
-              user: summary.counterpart?.name || summary.title,
-              text: summary.lastMessage,
-              time: summary.time,
-            };
-          }),
-      );
+      try {
+        setSupportTickets(
+          (await getSupportTicketsForCurrentUser()).map((ticket) => ({
+            id: ticket.id,
+            subject: ticket.subject,
+            status: ticket.status,
+            date: ticket.date,
+            type: ticket.category,
+          })),
+        );
+      } catch (e) {
+        console.warn("[Dashboard] support tickets", e);
+      }
+
+      setLevelInfo(getLevelTier(current.levelState?.xp ?? 0));
+
+      try {
+        setMessagePreview(
+          (await getVisibleConversations())
+            .slice(0, 3)
+            .map((conversation) => {
+              const summary = getConversationSummary(conversation, viewerIdentityIds(current));
+              return {
+                id: conversation.id,
+                user: summary.counterpart?.name || summary.title,
+                text: summary.lastMessage,
+                time: summary.time,
+              };
+            }),
+        );
+      } catch (e) {
+        console.warn("[Dashboard] message preview", e);
+        setMessagePreview([]);
+      }
+
+      try {
+        setFavoriteRows(await getFavoriteListRows(current));
+      } catch (e) {
+        console.warn("[Dashboard] favorites", e);
+        setFavoriteRows([]);
+      }
       } catch (err) {
         console.error("[Dashboard] syncUserState", err);
-        toast.error("Panel verileri yüklenirken hata oluştu. Lütfen tekrar deneyin.");
-        navigate("/login");
+        toast.error("Panel verileri yüklenirken hata oluştu. Sayfayı yenileyin veya tekrar giriş yapın.");
       } finally {
         setIsLoading(false);
       }
@@ -364,6 +378,16 @@ const Dashboard = () => {
   const setTab = (tab: DashboardTab) => {
     setActiveTab(tab);
     navigate(`/dashboard?tab=${tab}`);
+  };
+
+  const removeFavoriteFromDashboard = async (listingId: string) => {
+    const current = await getCurrentUser();
+    if (!current) return;
+    const { ok } = await toggleListingFavorite(listingId, current);
+    if (ok) {
+      setFavoriteRows((prev) => prev.filter((r) => r.listingId !== listingId));
+      toast.success("Favorilerden kaldırıldı.");
+    }
   };
 
   const saveProfile = async () => {
@@ -1015,18 +1039,34 @@ const Dashboard = () => {
                   <Heart className="h-6 w-6 text-red-500" />
                 </CardHeader>
                 <CardContent className="p-8 grid grid-cols-1 md:grid-cols-2 gap-4">
-                  {favorites.map((fav) => (
-                    <div key={fav.id} className="p-5 rounded-3xl bg-white/5 border border-white/5 hover:border-primary/20 transition-all flex items-center justify-between group">
-                      <div>
-                        <h4 className="text-sm font-black text-white italic">{fav.title}</h4>
-                        <p className="text-[10px] font-black uppercase text-muted-foreground opacity-60 mt-1">{fav.seller}</p>
-                        <p className="text-sm font-black text-primary italic mt-2">{fav.price}</p>
+                  {favoriteRows.length === 0 ? (
+                    <p className="text-sm text-muted-foreground col-span-full text-center py-8">
+                      Henüz favori ilan yok. İlan detayından &quot;Favorile&quot; ile ekleyebilirsiniz.
+                    </p>
+                  ) : (
+                    favoriteRows.map((fav) => (
+                      <div
+                        key={fav.listingId}
+                        className="p-5 rounded-3xl bg-white/5 border border-white/5 hover:border-primary/20 transition-all flex items-center justify-between gap-3 group"
+                      >
+                        <Link to={`/listing/${encodeURIComponent(fav.listingId)}`} className="min-w-0 flex-1 text-left">
+                          <h4 className="text-sm font-black text-white italic truncate">{fav.title}</h4>
+                          <p className="text-[10px] font-black uppercase text-muted-foreground opacity-60 mt-1">{fav.seller}</p>
+                          <p className="text-sm font-black text-primary italic mt-2">{fav.price}</p>
+                        </Link>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          type="button"
+                          className="h-10 w-10 shrink-0 rounded-xl hover:bg-red-500/10 hover:text-red-500 text-muted-foreground"
+                          onClick={() => void removeFavoriteFromDashboard(fav.listingId)}
+                          aria-label="Favorilerden kaldır"
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
                       </div>
-                      <Button variant="ghost" size="icon" className="h-10 w-10 rounded-xl hover:bg-red-500/10 hover:text-red-500 text-muted-foreground">
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
-                    </div>
-                  ))}
+                    ))
+                  )}
                 </CardContent>
               </Card>
             )}
