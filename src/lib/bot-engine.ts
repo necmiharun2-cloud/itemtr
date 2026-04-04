@@ -268,24 +268,24 @@ const CATEGORY_CONTENT: Record<string, { titles: string[], descriptions: string[
     descriptions: ["🔫 Buz Diyarı M416 (Max)\n- Seviye: 65\n- Bağlantılar: Sadece Mail"]
   },
   "Steam": {
-    titles: ["Steam 500 TL Cüzdan Kodu - Anında Teslimat", "Steam Oyun Keyi — Bölge TR"],
-    descriptions: ["🎮 STEAM\n- Anında teslim\n- TRY bölge"]
+    titles: ["Steam 500 TL Cüzdan Kodu - Anında Teslimat", "Steam Oyun Keyi — Bölge TR", "Hesap Devretme - 50+ Oyunlu Steam Hesabı"],
+    descriptions: ["🎮 STEAM\n- Anında teslim\n- TRY bölge\n- %100 Güvenli"]
   },
   "Metin2": {
-    titles: ["Metin2 25 GB Won Paketi", "Metin2 Item Seti — Hızlı Teslim"],
-    descriptions: ["Metin2 güvenli teslimat\n- 7/24 aktif"]
+    titles: ["Metin2 25 GB Won Paketi", "Metin2 Item Seti — Hızlı Teslim", "90 Level Bedensel Karakter — Metin2"],
+    descriptions: ["Metin2 güvenli teslimat\n- 7/24 aktif\n- İtemTR Garantisiyle"]
   },
   "Knight Online": {
-    titles: ["Knight Online Gold Paketi", "USKO KC — Anında Transfer"],
-    descriptions: ["KO güvenli trade\n- Hızlı teslim"]
+    titles: ["Knight Online Gold Paketi", "USKO KC — Anında Transfer", "Knight Online 80 Level Ringli Char"],
+    descriptions: ["KO güvenli trade\n- Hızlı teslim\n- Anında teslimat"]
   },
   "Minecraft": {
-    titles: ["Minecraft Java Premium Hesap", "Minecraft + Bedrock Bundle"],
-    descriptions: ["Java erişimi\n- İlk mail"]
+    titles: ["Minecraft Java Premium Hesap", "Minecraft + Bedrock Bundle", "Hypixel Uyumlu Minecraft Hesabı"],
+    descriptions: ["Java erişimi\n- İlk mail\n- Hemen Teslim"]
   },
   "Discord": {
-    titles: ["Discord Nitro 1 Ay", "Discord Server Boost Paketi"],
-    descriptions: ["Nitro hediye linki\n- Anında teslim"]
+    titles: ["Discord Nitro 1 Ay", "Discord Server Boost Paketi", "Discord Nitro 1 Yıllık — Hediye"],
+    descriptions: ["Nitro hediye linki\n- Anında teslim\n- 7/24 Destek"]
   }
 };
 

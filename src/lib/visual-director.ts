@@ -86,6 +86,46 @@ export class ListingVisualDirector {
       composition: "tactical equipment or character focal point, battlefield depth, dynamic action angle, professional shooter game cover composition, uncluttered focus",
       negativePrompt: "gaming chair, desk setup, room interior, office, furniture, keyboard, mouse, monitor, RGB lights, cartoon, anime, futuristic sci-fi, watermark overload, text overlay, huge text, slogan, fake banner, UI elements, fake product card, cluttered, messy, low quality, blurry"
     },
+    "Metin2": {
+      scene: "Metin2 oriental fantasy world, ancient village or valley, warrior in glowing armor, stone monuments, mythological creatures, eastern aesthetic fantasy, ancient dragon silhouette",
+      style: "MMORPG cinematic art, epic fantasy realism, highly detailed armor/weapon, traditional oriental fantasy atmosphere",
+      lighting: "golden hour sunlight, mystical particle glows, volumetric atmospheric fog, epic horizon lighting",
+      colors: "deep reds, golden ambers, ancient bronze, mystical purple spells, natural earth tones",
+      composition: "heroic warrior focal point, wide landscape depth, epic cinematic framing",
+      negativePrompt: "modern items, guns, cars, technology, cyberpunk, sci-fi, gaming chair, computer, furniture, UI, text, watermark, blurry, low res"
+    },
+    "Knight Online": {
+      scene: "Knight Online Moradon or El Morad castle, epic medieval battlefield, iron-clad knights, massive swords, war banners, glowing magical enhancements, party of heroes",
+      style: "classic dark fantasy realism, epic RPG art, cinematic battle scene, detailed plate armor",
+      lighting: "dramatic overcast battlefield, bright magical weapon glows, volumetric smoke",
+      colors: "steel blue, deep crimson, iron gray, brilliant gold weapon glows, dark sky",
+      composition: "battle-ready hero or epic castle gate, dynamic low angle, intense action atmosphere",
+      negativePrompt: "casual clothes, phones, computers, modern room, furniture, cartoon, anime, text, labels, low quality, blurry"
+    },
+    "Minecraft": {
+      scene: "Minecraft voxel world, epic blocky landscape, custom architectural build, diamond sword, enderman or creeper environment, creative building masterpiece",
+      style: "stylized 3D blocky render, vibrant voxel art, polished game cinematic, clean sharp edges",
+      lighting: "bright sunny voxel lighting, soft blocky shadows, glowing redstone or torches",
+      colors: "vibrant grass green, sky blue, diamond teal, earth browns, rich block colors",
+      composition: "iconic build or character focal point, clean perspective, welcoming game world",
+      negativePrompt: "realistic human, photo, furniture, room interior, messy, text, watermark, blurry, low res"
+    },
+    "Discord": {
+      scene: "Discord digital community hub, stylized social interface aesthetic, gamer networking space, nitro premium elements, abstract digital connection, futuristic communication",
+      style: "clean vector-style 3D render, modern app aesthetic, sleek high-tech social art",
+      lighting: "soft neon purple glow, sleek backlight, modern tech ambiance",
+      colors: "Discord blurple, dark theme charcoal, neon highlights, clean white accents",
+      composition: "abstract tech focal point, balanced minimalist layout, professional app key art",
+      negativePrompt: "messy room, real furniture, office, paperwork, handwritten, blurry, low quality, text overload"
+    },
+    "Steam": {
+      scene: "Steam gaming library portal, huge collection of digital games, professional gaming platform aesthetic, PC master race concept, futuristic digital distribution",
+      style: "high-end digital commercial, sleek tech render, professional gaming store aesthetic",
+      lighting: "cyan and blue digital glow, premium spotlighting, sleek ambient light",
+      colors: "Steam blue, deep slate, digital cyan, clean white technology accents",
+      composition: "hero product or digital portal focal point, perspective depth, clean professional layout",
+      negativePrompt: "gaming chair, desk, room interior, messy, keyboard, mouse, monitor, physical objects, paper, text, blurry"
+    },
     "default": {
       scene: "premium gaming atmosphere, abstract high-tech gaming environment, digital marketplace energy, professional gaming world portal, sleek virtual space, modern digital commerce aesthetic",
       style: "premium digital art, sleek modern commercial aesthetic, ultra-clean composition, professional marketplace visual, sharp high-end digital render",
@@ -113,22 +153,31 @@ export class ListingVisualDirector {
     if (lc.includes("league") || /\blol\b/.test(lc) || /\blol\b/.test(lt) || lc.includes("legends")) return "League of Legends";
     if (lc.includes("roblox") || lt.includes("roblox")) return "Roblox";
     if (lc.includes("pubg") || lt.includes("pubg")) return "PUBG Mobile";
-    if (lc === "metin2" || lc.startsWith("metin2 ") || (lc.includes("metin2") && !lt.includes("sunucu") && !lt.includes("server") && !lt.includes("emek"))) {
+    
+    // Metin2 vs PVP Serverlar ayrımı
+    const isPvpContext = lt.includes("sunucu") || lt.includes("server") || lt.includes("emek") || 
+                        lt.includes("official") || lt.includes("açılış") || lt.includes("acilis") || 
+                        lt.includes("pvp") || lt.includes("ws");
+
+    if (lc === "metin2" || lc.startsWith("metin2 ") || (lc.includes("metin2") && !isPvpContext)) {
       return "Metin2";
     }
-    if (lc.includes("knight") && lc.includes("online")) return "Knight Online";
+    if (lc.includes("knight") && lc.includes("online") && !isPvpContext) return "Knight Online";
+    
     if (lc.includes("minecraft") || lt.includes("minecraft")) return "Minecraft";
     if (lc.includes("discord") || lt.includes("discord")) return "Discord";
+    
     if (
       lc.includes("pvp") ||
-      (lc.includes("metin") && (lt.includes("sunucu") || lt.includes("server") || lt.includes("emek") || lt.includes("official") || lt.includes("acilis"))) ||
-      (lc.includes("knight") && (lt.includes("sunucu") || lt.includes("pvp") || lt.includes("server"))) ||
+      (lc.includes("metin") && isPvpContext) ||
+      (lc.includes("knight") && (isPvpContext || lc.includes("pvp"))) ||
       lc.includes("sunucu") ||
       lt.includes("emek server") ||
-      (lt.includes("metin2") && (lt.includes("sunucu") || lt.includes("server") || lt.includes("emek") || lt.includes("açılış") || lt.includes("acilis")))
+      isPvpContext
     ) {
       return "PVP Serverlar";
     }
+    
     if (lc.includes("steam") || lt.includes("steam") || lc.includes("cd-key") || lc.includes("cd key")) return "Steam";
     if (lc.includes("epic") || lt.includes("fortnite")) return "default";
 

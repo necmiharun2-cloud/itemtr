@@ -73,17 +73,21 @@ const CATEGORY_IMAGES: Record<string, string[]> = {
   "Knight Online": [
     "https://images.unsplash.com/photo-1542759564-82f6f1f0e4f3?w=800&q=80",
     "https://images.unsplash.com/photo-1542751371-29b95d39f6d4?w=800&q=80",
-    "https://images.unsplash.com/photo-1550745165-9bc0b252726f?w=800&q=80"
+    "https://images.unsplash.com/photo-1550745165-9bc0b252726f?w=800&q=80",
+    "https://images.unsplash.com/photo-1518709268805-4e9042af9f23?w=800&q=80",
+    "https://images.unsplash.com/photo-1542751371-adc38448a05e?w=800&q=80"
   ],
   "Minecraft": [
     "https://images.unsplash.com/photo-1606144042614-b2417e99c4e3?w=800&q=80",
     "https://images.unsplash.com/photo-1614294148960-9aa740632a87?w=800&q=80",
-    "https://images.unsplash.com/photo-1563089145-599997674d42?w=800&q=80"
+    "https://images.unsplash.com/photo-1563089145-599997674d42?w=800&q=80",
+    "https://images.unsplash.com/photo-1511512578047-dfb367046420?w=800&q=80"
   ],
   "Discord": [
     "https://images.unsplash.com/photo-1611605698335-8b1569810432?w=800&q=80",
     "https://images.unsplash.com/photo-1550745165-9bc0b252726f?w=800&q=80",
-    "https://images.unsplash.com/photo-1511512578047-dfb367046420?w=800&q=80"
+    "https://images.unsplash.com/photo-1511512578047-dfb367046420?w=800&q=80",
+    "https://images.unsplash.com/photo-1563089145-599997674d42?w=800&q=80"
   ],
   "default": [
     "https://images.unsplash.com/photo-1542751371-adc38448a05e?w=800&q=80",
@@ -330,6 +334,51 @@ export const fetchItemSatisListings = async (category?: string): Promise<ItemSat
         image: getCategoryImage("Discord", 0),
         category: "Discord",
         seller: "NitroTR"
+      },
+      {
+        id: "IS-023",
+        title: "Steam Cüzdan Kodu 1000 TL",
+        description: "Anında teslimat, sınırlı stok.",
+        price: "950 ₺",
+        image: getCategoryImage("Steam", 1),
+        category: "Steam",
+        seller: "SteamHero"
+      },
+      {
+        id: "IS-024",
+        title: "Metin2 Karakter — 90 Level Bedensel",
+        description: "Biyolog bitik, full itemli, global server.",
+        price: "1.200 ₺",
+        image: getCategoryImage("Metin2", 1),
+        category: "Metin2",
+        seller: "WarriorStore"
+      },
+      {
+        id: "IS-025",
+        title: "Knight Online 80 Level Ringli Kurian",
+        description: "Full skill açık, güvenli teslimat.",
+        price: "850 ₺",
+        image: getCategoryImage("Knight Online", 1),
+        category: "Knight Online",
+        seller: "RingStore"
+      },
+      {
+        id: "IS-026",
+        title: "Minecraft VIP Üyelik — Hypixel Uyumlu",
+        description: "Kalıcı VIP üyelik, anında aktifleşir.",
+        price: "250 ₺",
+        image: getCategoryImage("Minecraft", 1),
+        category: "Minecraft",
+        seller: "McVip"
+      },
+      {
+        id: "IS-027",
+        title: "Discord Boost Takviyesi — 14x Boost",
+        description: "Sunucunuzu anında 3. seviye yapın.",
+        price: "200 ₺",
+        image: getCategoryImage("Discord", 1),
+        category: "Discord",
+        seller: "BoostCenter"
       }
     ];
 

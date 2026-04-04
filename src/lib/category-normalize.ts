@@ -50,6 +50,7 @@ export function normalizeBotCategoryFilter(raw: string): string {
     roblox: "Roblox",
     "pubg-mobile": "PUBG Mobile",
     pubg: "PUBG Mobile",
+    pubgm: "PUBG Mobile",
     steam: "Steam",
     "pvp-serverlar": "PVP Serverlar",
     "pvp serverlar": "PVP Serverlar",
@@ -59,7 +60,9 @@ export function normalizeBotCategoryFilter(raw: string): string {
     "knight-online": "Knight Online",
     "knight online": "Knight Online",
     minecraft: "Minecraft",
+    mc: "Minecraft",
     discord: "Discord",
+    dc: "Discord",
   };
 
   if (direct[s]) return direct[s];
@@ -77,8 +80,8 @@ export function normalizeBotCategoryFilter(raw: string): string {
   if (s.includes("pvp") || s.includes("sunucu") || s.includes("server")) return "PVP Serverlar";
   if (s.includes("metin")) return "Metin2";
   if (s.includes("knight")) return "Knight Online";
-  if (s.includes("minecraft")) return "Minecraft";
-  if (s.includes("discord")) return "Discord";
+  if (s.includes("minecraft") || s === "mc") return "Minecraft";
+  if (s.includes("discord") || s === "dc") return "Discord";
 
   const exact = BOT_CANONICAL_CATEGORIES.find((c) => c.toLowerCase() === s);
   if (exact) return exact;

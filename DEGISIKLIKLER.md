@@ -4,8 +4,11 @@ Bu dosya, yapılan teknik düzeltmelerin özetidir (hata ayıklama, test, tema).
 
 ## Tema (dark / aydınlık)
 
-- **Sorun:** `ThemeToggle` `localStorage` anahtarı `theme` ve manuel `document.documentElement.classList` kullanıyordu; uygulama ise `next-themes` ile `storageKey="vite-ui-theme"` kullanıyordu. İkisi çakıştığı için sağ üstteki mod geçişi güvenilir çalışmıyordu.
-- **Çözüm:** `ThemeToggle` `useTheme()` / `setTheme()` ile `next-themes` ile senkronize edildi; ilk render (hydration) için `mounted` kontrolü eklendi. `ThemeProvider`a `attribute="class"` (Tailwind `dark` sınıfı için) ve `enableSystem` eklendi.
+- **Sorun 1:** `ThemeToggle` `localStorage` anahtarı `theme` ve manuel `document.documentElement.classList` kullanıyordu; uygulama ise `next-themes` ile `storageKey="vite-ui-theme"` kullanıyordu. İkisi çakıştığı için sağ üstteki mod geçişi güvenilir çalışmıyordu.
+- **Çözüm 1:** `ThemeToggle` `useTheme()` / `setTheme()` ile `next-themes` ile senkronize edildi; ilk render (hydration) için `mounted` kontrolü eklendi. `ThemeProvider`a `attribute="class"` (Tailwind `dark` sınıfı için) ve `enableSystem` eklendi.
+
+- **Sorun 2 (canlı sitede “hiç değişmiyor” hissi):** `src/index.css` içinde **yalnızca `:root`** vardı ve değişkenler **koyu tema** renkleriydi; shadcn/Tailwind düzeninde aydınlık mod **`html` üzerinde `.dark` olmadığında** `:root` paletini kullanır. Aydınlık için ayrı palet tanımlanmadığından düğme `light` seçse bile arayüz koyu kalıyordu.
+- **Çözüm 2:** `:root` aydınlık (açık arka plan / koyu metin) CSS değişkenlerine çekildi; önceki koyu değerler **`.dark { ... }`** bloğuna taşındı.
 
 ## Vitest / bellek
 
