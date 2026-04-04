@@ -14,17 +14,54 @@ let kocucePvpCache: KocuceItem[] = (() => {
   return getCombinedPvpPool();
 })();
 
-const BOT_IMAGE_CACHE_KEY = "itemtr_bot_image_cache_v5"; // Cache'i tazelemek için versiyonu artırıyoruz
+const BOT_IMAGE_CACHE_KEY = "itemtr_bot_image_cache_v10_final"; // Versiyon atlatarak eski bozuk cache'i temizliyoruz
 const BOT_STATS_KEY = "itemtr_bot_stats";
 const BOT_HISTORY_KEY = "itemtr_bot_listings";
 const BOT_USED_NAMES_KEY = "itemtr_bot_used_names";
 const BOT_BACKUP_KEY = "itemtr_bot_listings_backup";
 const BOT_BULK_OVERRIDE_KEY = "itemtr_bot_bulk_override_url";
 const BOT_IMAGE_VERSION_KEY = "itemtr_bot_image_version";
-const CURRENT_IMAGE_VERSION = "hd-v5-tr";
+const CURRENT_IMAGE_VERSION = "hd-v10-final";
 export const BOT_LOGO_IMAGE = "/itemtr-bot-logo.svg";
 
 type BotImageCache = Record<string, string>;
+
+const CURATED_GAME_IMAGES: Record<string, string[]> = {
+  "CS2": [
+    "https://images.unsplash.com/photo-1542751110-97427bbecf20", // CS Scene
+    "https://images.unsplash.com/photo-1511512578047-dfb367046420", // Gaming Keyboard/PC
+    "https://images.unsplash.com/photo-1552820728-8b83bb6b773f"  // Cyberpunk Gaming
+  ],
+  "Valorant": [
+    "https://images.unsplash.com/photo-1624138784614-87fd1b6528f2", // Valorant style
+    "https://images.unsplash.com/photo-1560253023-3ee7d644864e", // Abstract High Tech
+    "https://images.unsplash.com/photo-1614285457768-646f65ca8548"  // Red/Black Gaming
+  ],
+  "League of Legends": [
+    "https://images.unsplash.com/photo-1542751371-adc38448a05e", // Fantasy Landscape
+    "https://images.unsplash.com/photo-1518709268805-4e9042af9f23", // Magic Purple
+    "https://images.unsplash.com/photo-1534423861386-85a16f5d13fd"  // Gaming Setup
+  ],
+  "Roblox": [
+    "https://images.unsplash.com/photo-1614294148960-9aa740632a87", // Roblox Colors
+    "https://images.unsplash.com/photo-1606144042614-b2417e99c4e3", // Minecraft/Voxel
+    "https://images.unsplash.com/photo-1611605698335-8b1569810432"  // Social/App style
+  ],
+  "Metin2": [
+    "https://images.unsplash.com/photo-1542751371-29b95d39f6d4", // Medieval Armor
+    "https://images.unsplash.com/photo-1518709268805-4e9042af9f23", // Dark Knight style
+    "https://images.unsplash.com/photo-1599713191704-9b7e7262c7fa"  // Ancient Asian Temple
+  ],
+  "PVP Serverlar": [
+    "https://images.unsplash.com/photo-1542751371-6533d2d7a1f9", // Fantasy Battle
+    "https://images.unsplash.com/photo-1511512578047-dfb367046420", // Pro Gaming
+    "https://images.unsplash.com/photo-1614294148960-9aa740632a87"  // colorful world
+  ],
+  "default": [
+    "https://images.unsplash.com/photo-1542751371-adc38448a05e",
+    "https://images.unsplash.com/photo-1511512578047-dfb367046420"
+  ]
+};
 
 const getBotImageCache = (): BotImageCache => {
   const raw = localStorage.getItem(BOT_IMAGE_CACHE_KEY);
@@ -139,19 +176,23 @@ const watermarkImage = async (imageUrl: string, text: string): Promise<string> =
 };
 
 const getHdImageForListing = async (category: string, title: string, listingId: string): Promise<string> => {
-  const query = getSearchQueryForListing(category, title);
   const cache = getBotImageCache();
-  // Her ilana özel benzersiz bir cache key (id bazlı)
-  const cacheKey = `img_${listingId.toLowerCase().replace(/[^a-z0-9]/g, '_')}_v9`; 
+  const cacheKey = `curated_${listingId}_v10`;
   
   if (cache[cacheKey]) return cache[cacheKey];
 
-  // Unsplash gaming koleksiyonu - her ilan için farklı bir sig/seed ekliyoruz
-  const cleanTitle = title.replace(/[^\w\s]/gi, '');
-  const prompt = encodeURIComponent(`${query} ${cleanTitle}`);
-  
-  // Benzersiz olması için Math.random ekliyoruz
-  const imageUrl = `https://source.unsplash.com/featured/1280x720?${prompt}&sig=${Math.random().toString(36).slice(2, 8)}`;
+  // Kategoriye göre küratörlü (seçilmiş) resim listesini al
+  let imagePool = CURATED_GAME_IMAGES[category] || CURATED_GAME_IMAGES["default"];
+  if (category.includes("PVP")) imagePool = CURATED_GAME_IMAGES["PVP Serverlar"];
+  if (category.includes("Valorant")) imagePool = CURATED_GAME_IMAGES["Valorant"];
+  if (category.includes("CS2") || category.includes("Counter")) imagePool = CURATED_GAME_IMAGES["CS2"];
+  if (category.includes("League") || category.includes("LoL")) imagePool = CURATED_GAME_IMAGES["League of Legends"];
+  if (category.includes("Roblox")) imagePool = CURATED_GAME_IMAGES["Roblox"];
+  if (category.includes("Metin2")) imagePool = CURATED_GAME_IMAGES["Metin2"];
+
+  const baseImageUrl = pickRandom(imagePool);
+  // Unsplash Source URL'sini oluştur (Garantili resim için)
+  const imageUrl = `${baseImageUrl}?q=80&w=1280&auto=format&fit=crop`;
   
   try {
     const watermarkedUrl = await watermarkImage(imageUrl, category);
@@ -159,7 +200,7 @@ const getHdImageForListing = async (category: string, title: string, listingId: 
     setBotImageCache(cache);
     return watermarkedUrl;
   } catch (error) {
-    console.error("Filigranlama işlemi başarısız:", error);
+    console.error("Filigranlama hatası:", error);
     return imageUrl;
   }
 };
