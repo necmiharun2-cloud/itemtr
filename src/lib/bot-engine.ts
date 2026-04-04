@@ -141,6 +141,8 @@ const BOT_HISTORY_KEY = "itemtr_bot_listings";
 const BOT_USED_NAMES_KEY = "itemtr_bot_used_names";
 const BOT_BACKUP_KEY = "itemtr_bot_listings_backup";
 const BOT_BULK_OVERRIDE_KEY = "itemtr_bot_bulk_override_url";
+const BOT_IMAGE_VERSION_KEY = "itemtr_bot_image_version";
+const CURRENT_IMAGE_VERSION = "v2"; // Increment to force refresh all images
 export const BOT_LOGO_IMAGE = "/itemtr-bot-logo.svg";
 
 const NAME_PREFIXES = ["Anka","Altin","Arena","Asil","Atlas","Ayyildiz","Baron","Beta","Boreas","Cosmos","Delta","Doru","Efsane","Eksen","Firtina","Galaksi","Gece","Gokturk","Kutup","Lodos","Lotus","Nova","Onix","Poyraz","Rota"];
@@ -408,23 +410,15 @@ export const getBotNamePoolStats = (): BotNamePoolStats => { const usedNames = g
 export const getBotStats = (): BotStats => { const today = new Date().toLocaleDateString(); const stats = safeJSONParse<BotStats | null>(localStorage.getItem(BOT_STATS_KEY), null); if (!stats) return { totalListings: 148, todayListings: 24, lastUpdate: today }; if (stats.lastUpdate !== today) { const refreshed = { ...stats, todayListings: 0, lastUpdate: today }; localStorage.setItem(BOT_STATS_KEY, JSON.stringify(refreshed)); return refreshed; } return stats; };
 const incrementBotStats = () => { const stats = getBotStats(); localStorage.setItem(BOT_STATS_KEY, JSON.stringify({ totalListings: stats.totalListings + 1, todayListings: stats.todayListings + 1, lastUpdate: new Date().toLocaleDateString() })); };
 export const getBotHistory = (): BotListing[] => {
-  // Always refresh images before returning
-  const history = safeJSONParse<BotListing[]>(localStorage.getItem(BOT_HISTORY_KEY), []);
-  
-  if (history.length > 0) {
-    // Force update all images with new system
-    const updated = history.map((listing) => {
-      if (!listing) return listing;
-      return {
-        ...listing,
-        image: getCategorySpecificImage(listing.category, listing.id),
-      };
-    });
-    localStorage.setItem(BOT_HISTORY_KEY, JSON.stringify(updated));
-    return updated;
+  // Check version and clear if outdated
+  const storedVersion = localStorage.getItem(BOT_IMAGE_VERSION_KEY);
+  if (storedVersion !== CURRENT_IMAGE_VERSION) {
+    console.log('[Bot Engine] Image version changed, clearing old bot listings...');
+    localStorage.removeItem(BOT_HISTORY_KEY);
+    localStorage.setItem(BOT_IMAGE_VERSION_KEY, CURRENT_IMAGE_VERSION);
+    return [];
   }
-  
-  return history;
+  return safeJSONParse<BotListing[]>(localStorage.getItem(BOT_HISTORY_KEY), []);
 };
 export const getBotListingById = (listingId?: string | null) => listingId ? getBotHistory().find((listing) => listing.id === listingId) || null : null;
 export const isBotListingLocked = (listingId?: string | number | null) => { if (!listingId) return false; const normalizedId = String(listingId); if (normalizedId.startsWith("BOT-")) return true; const listing = getBotListingById(normalizedId); return Boolean(listing?.isBot || listing?.isPurchasable === false); };
