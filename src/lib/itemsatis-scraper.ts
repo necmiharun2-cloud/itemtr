@@ -295,7 +295,7 @@ export const fetchItemSatisListings = async (category?: string): Promise<ItemSat
  * Gets random listing from itemsatis pool - prevents duplicates
  */
 export const getRandomItemSatisListing = async (category?: string): Promise<ItemSatisListing | null> => {
-  let listings = await fetchItemSatisListings(category);
+  const listings = await fetchItemSatisListings(category);
   if (listings.length === 0) return null;
   
   // Get available listings (excluding used ones)
