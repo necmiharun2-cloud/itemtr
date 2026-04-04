@@ -16,14 +16,14 @@ let kocucePvpCache: KocuceItem[] = (() => {
   return getCombinedPvpPool();
 })();
 
-const BOT_IMAGE_CACHE_KEY = "itemtr_bot_image_cache_v11_pro"; // Pro prompt sistemi için versiyon güncelleme
+const BOT_IMAGE_CACHE_KEY = "itemtr_bot_image_cache_v12_hd_ai"; // HD AI görseller + kategori eşlemesi
 const BOT_STATS_KEY = "itemtr_bot_stats";
 const BOT_HISTORY_KEY = "itemtr_bot_listings";
 const BOT_USED_NAMES_KEY = "itemtr_bot_used_names";
 const BOT_BACKUP_KEY = "itemtr_bot_listings_backup";
 const BOT_BULK_OVERRIDE_KEY = "itemtr_bot_bulk_override_url";
 const BOT_IMAGE_VERSION_KEY = "itemtr_bot_image_version";
-const CURRENT_IMAGE_VERSION = "pro-visual-v11";
+const CURRENT_IMAGE_VERSION = "pro-visual-v12-hd-ai";
 export const BOT_LOGO_IMAGE = "/itemtr-bot-logo.svg";
 
 type BotImageCache = Record<string, string>;
@@ -81,22 +81,6 @@ const setBotImageCache = (cache: BotImageCache) => {
   localStorage.setItem(BOT_IMAGE_CACHE_KEY, JSON.stringify(cache));
 };
 
-const getSearchQueryForListing = (category: string, title: string) => {
-  const lowerCategory = String(category || "").toLowerCase();
-  const lowerTitle = String(title || "").toLowerCase();
-
-  if (lowerCategory.includes("valorant")) return "valorant game character";
-  if (lowerCategory.includes("cs2") || lowerCategory.includes("counter")) return "csgo counter strike skins";
-  if (lowerCategory.includes("league") || lowerCategory.includes("lol")) return "league of legends wallpaper";
-  if (lowerCategory.includes("pubg")) return "pubg mobile battle royale";
-  if (lowerCategory.includes("roblox")) return "roblox gaming world";
-  if (lowerCategory.includes("metin2") || lowerTitle.includes("metin2")) return "medieval warrior armor sword";
-  if (lowerCategory.includes("knight") || lowerTitle.includes("knight")) return "knight armor sword";
-  if (lowerCategory.includes("pvp")) return "fantasy mmorpg world";
-  
-  return `${category} gaming hd`.slice(0, 50);
-};
-
 const watermarkImage = async (imageUrl: string): Promise<string> => {
   return new Promise((resolve) => {
     const img = new Image();
@@ -137,21 +121,20 @@ const watermarkImage = async (imageUrl: string): Promise<string> => {
 
 const getHdImageForListing = async (category: string, title: string, listingId: string, description: string = ""): Promise<string> => {
   const cache = getBotImageCache();
-  const cacheKey = `pro_${listingId}_v11`;
-  
+  const cacheKey = `pro_${listingId}_v12_hd`;
+
   if (cache[cacheKey]) return cache[cacheKey];
 
-  // Visual Director ile profesyonel AI promptu üretimi
+  // Visual Director: kategori + başlık + açıklamaya göre prompt (Pollinations = görsel AI)
   const professionalPrompt = ListingVisualDirector.generatePrompt({
     category,
     title,
     description,
-    style: "premium"
+    style: "premium",
   });
 
-  // Pollinations AI - Karmaşık ve profesyonel promptları işlemek için ideal
-  const seed = Math.floor(Math.random() * 1000000);
-  const imageUrl = `https://image.pollinations.ai/prompt/${encodeURIComponent(professionalPrompt)}?width=1280&height=720&nologo=true&seed=${seed}`;
+  const seed = Math.floor(Math.random() * 1_000_000);
+  const imageUrl = `https://image.pollinations.ai/prompt/${encodeURIComponent(professionalPrompt)}?width=1920&height=1080&nologo=true&seed=${seed}`;
   
   try {
     const watermarkedUrl = await watermarkImage(imageUrl);
@@ -285,35 +268,46 @@ export const generateBotListing = async (): Promise<BotListing> => {
   
   if (!itemsatisListing) {
     // Fallback: Eğer itemtr'den veri gelmezse eski sistemi kullan
-    return generateFallbackBotListing(selectedCategory);
+    return await generateFallbackBotListing(selectedCategory);
   }
 
   const seller = reserveUniqueBotName(); 
   const id = `BOT-${Math.random().toString(36).slice(2, 7).toUpperCase()}`;
 
-  const newListing: BotListing = { 
-    id, 
-    title: itemsatisListing.title, 
-    category: itemsatisListing.category, 
-    seller, 
-    sellerAvatar: `https://ui-avatars.com/api/?name=${encodeURIComponent(seller)}&background=111827&color=FACC15`, 
+  const newListing: BotListing = {
+    id,
+    title: itemsatisListing.title,
+    category: itemsatisListing.category,
+    seller,
+    sellerAvatar: `https://ui-avatars.com/api/?name=${encodeURIComponent(seller)}&background=111827&color=FACC15`,
     price: itemsatisListing.price,
     image: itemsatisListing.image,
-    description: itemsatisListing.description, 
+    description: itemsatisListing.description,
     seoKeywords: [itemsatisListing.category.toLowerCase(), "bot", "itemtr"],
-    isAutoDelivery: itemsatisListing.category !== "PVP Serverlar" && Math.random() > 0.3, 
-    isBot: true, 
-    isPurchasable: false, 
-    availabilityMessage: "Ürün Mevcut Değil", 
-    stock: 0, 
+    isAutoDelivery: itemsatisListing.category !== "PVP Serverlar" && Math.random() > 0.3,
+    isBot: true,
+    isPurchasable: false,
+    availabilityMessage: "Ürün Mevcut Değil",
+    stock: 0,
     tags: ["Güvenilir", "Hızlı", "ItemTR"],
     reviews: [],
-    bgColor: "bg-[#16a34a]", 
-    isVitrin: Math.random() < 0.25, 
-    sellerExperience: 5, 
-    createdTimestamp: Date.now()
-  }; 
-  
+    bgColor: "bg-[#16a34a]",
+    isVitrin: Math.random() < 0.25,
+    sellerExperience: 5,
+    createdTimestamp: Date.now(),
+  };
+
+  try {
+    newListing.image = await getHdImageForListing(
+      newListing.category,
+      newListing.title,
+      newListing.id,
+      newListing.description,
+    );
+  } catch (e) {
+    console.warn("[Bot] HD AI görsel üretilemedi, yedek görsel kullanılıyor:", e);
+  }
+
   const history = getBotHistory();
   history.unshift(newListing); 
   localStorage.setItem(BOT_HISTORY_KEY, JSON.stringify(history.slice(0, 500))); 
@@ -322,7 +316,7 @@ export const generateBotListing = async (): Promise<BotListing> => {
 };
 
 // Fallback listing generator when itemsatis is unavailable
-const generateFallbackBotListing = (selectedCategory: string): BotListing => {
+const generateFallbackBotListing = async (selectedCategory: string): Promise<BotListing> => {
   let categoryPool = selectedCategory !== "all" ? selectedCategory : pickRandom(Object.keys(CATEGORY_CONTENT));
   if (categoryPool.toLowerCase().includes("pvp")) categoryPool = "PVP Serverlar";
 
@@ -345,29 +339,38 @@ const generateFallbackBotListing = (selectedCategory: string): BotListing => {
   const seller = reserveUniqueBotName(); 
   const id = `BOT-${Math.random().toString(36).slice(2, 7).toUpperCase()}`;
 
-  const newListing: BotListing = { 
-    id, 
-    title, 
-    category: categoryPool, 
-    seller, 
-    sellerAvatar: `https://ui-avatars.com/api/?name=${encodeURIComponent(seller)}&background=111827&color=FACC15`, 
+  const fallbackStockImage = pickRandom(CURATED_GAME_IMAGES[categoryPool] || CURATED_GAME_IMAGES["default"]);
+
+  const newListing: BotListing = {
+    id,
+    title,
+    category: categoryPool,
+    seller,
+    sellerAvatar: `https://ui-avatars.com/api/?name=${encodeURIComponent(seller)}&background=111827&color=FACC15`,
     price,
-    image: pickRandom(CURATED_GAME_IMAGES[categoryPool] || CURATED_GAME_IMAGES["default"]),
-    description, 
-    seoKeywords: [categoryPool.toLowerCase(), "bot"], 
-    isAutoDelivery: categoryPool !== "PVP Serverlar" && Math.random() > 0.3, 
-    isBot: true, 
-    isPurchasable: false, 
-    availabilityMessage: "Ürün Mevcut Değil", 
-    stock: 0, 
-    tags: ["Güvenilir", "Hızlı"], 
+    image: fallbackStockImage,
+    description,
+    seoKeywords: [categoryPool.toLowerCase(), "bot"],
+    isAutoDelivery: categoryPool !== "PVP Serverlar" && Math.random() > 0.3,
+    isBot: true,
+    isPurchasable: false,
+    availabilityMessage: "Ürün Mevcut Değil",
+    stock: 0,
+    tags: ["Güvenilir", "Hızlı"],
     reviews: [],
-    bgColor: "bg-[#16a34a]", 
-    isVitrin: Math.random() < 0.25, 
-    sellerExperience: 5, 
-    createdTimestamp: Date.now()
-  }; 
-  
+    bgColor: "bg-[#16a34a]",
+    isVitrin: Math.random() < 0.25,
+    sellerExperience: 5,
+    createdTimestamp: Date.now(),
+  };
+
+  try {
+    newListing.image = await getHdImageForListing(newListing.category, newListing.title, newListing.id, newListing.description);
+  } catch (e) {
+    console.warn("[Bot] HD AI görsel üretilemedi, kürasyonlu görsel kullanılıyor:", e);
+    newListing.image = fallbackStockImage;
+  }
+
   const history = getBotHistory();
   history.unshift(newListing); 
   localStorage.setItem(BOT_HISTORY_KEY, JSON.stringify(history.slice(0, 500))); 

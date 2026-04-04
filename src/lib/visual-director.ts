@@ -96,6 +96,42 @@ export class ListingVisualDirector {
     }
   };
 
+  /**
+   * İlan kategorisi ve başlığına göre şablon anahtarını seçer (CS2, Valorant, …).
+   * ItemSatis / serbest metin kategorileri için başlıkla takviye edilir.
+   */
+  static resolveCategoryKey(category: string, title: string = ""): string {
+    const raw = String(category || "").trim();
+    const templates = this.CATEGORY_TEMPLATES as Record<string, (typeof this.CATEGORY_TEMPLATES)["default"]>;
+    if (raw && templates[raw]) return raw;
+
+    const lc = raw.toLowerCase();
+    const lt = String(title || "").toLowerCase();
+
+    if (lc.includes("cs2") || lc.includes("counter-strike") || lt.includes("cs2")) return "CS2";
+    if (lc.includes("valorant") || lt.includes("valorant")) return "Valorant";
+    if (lc.includes("league") || /\blol\b/.test(lc) || /\blol\b/.test(lt) || lc.includes("legends")) return "League of Legends";
+    if (lc.includes("roblox") || lt.includes("roblox")) return "Roblox";
+    if (lc.includes("pubg") || lt.includes("pubg")) return "PUBG Mobile";
+    if (
+      lc.includes("pvp") ||
+      lc.includes("metin") ||
+      lc.includes("knight") ||
+      lc.includes("sunucu") ||
+      lt.includes("metin2") ||
+      lt.includes("knight online") ||
+      lt.includes("emek server")
+    ) {
+      return "PVP Serverlar";
+    }
+    if (lc.includes("steam") || lt.includes("steam") || lc.includes("cd-key") || lc.includes("cd key")) return "default";
+    if (lc.includes("minecraft") || lt.includes("minecraft")) return "Roblox";
+    if (lc.includes("discord") || lt.includes("discord nitro")) return "default";
+    if (lc.includes("epic") || lt.includes("fortnite")) return "default";
+
+    return "default";
+  }
+
   // Başlıktan anahtar kelimeler çıkar
   private static extractKeywords(title: string, description: string = ""): string[] {
     const combined = `${title} ${description}`.toLowerCase();
@@ -130,7 +166,7 @@ export class ListingVisualDirector {
 
   // İlan analizi yap
   private static analyzeListing(data: ListingVisualData): PromptAnalysis {
-    const category = data.category || "default";
+    const category = this.resolveCategoryKey(data.category, data.title);
     const title = data.title || "";
     const description = data.description || "";
     
@@ -182,14 +218,24 @@ export class ListingVisualDirector {
    * Ana fonksiyon: İlan verilerine göre profesyonel AI promptu üretir
    */
   static generatePrompt(data: ListingVisualData): string {
-    const analysis = this.analyzeListing(data);
-    const template = this.CATEGORY_TEMPLATES[data.category] || this.CATEGORY_TEMPLATES["default"];
-    
+    const resolvedCategory = this.resolveCategoryKey(data.category, data.title);
+    const dataResolved: ListingVisualData = { ...data, category: resolvedCategory };
+    const analysis = this.analyzeListing(dataResolved);
+    const template = this.CATEGORY_TEMPLATES[resolvedCategory] || this.CATEGORY_TEMPLATES["default"];
+
+    const titleClean = String(data.title || "")
+      .replace(/["'«»]/g, "")
+      .trim()
+      .slice(0, 100);
+
     // Prompt bileşenlerini birleştir
     const promptParts: string[] = [
       // Konu tanımı
       `Professional e-commerce product photography of ${analysis.productType}`,
       
+      // İlan başlığına özel bağlam (kategori + ilan metni)
+      titleClean ? `Listing-specific visual theme: ${titleClean}. Game or product category: ${resolvedCategory}` : `Game or product category: ${resolvedCategory}`,
+
       // Sahne açıklaması
       `Scene: ${template.scene}`,
       
