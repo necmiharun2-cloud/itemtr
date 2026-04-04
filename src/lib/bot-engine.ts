@@ -138,19 +138,20 @@ const watermarkImage = async (imageUrl: string, text: string): Promise<string> =
   });
 };
 
-const getHdImageForListing = async (category: string, title: string): Promise<string> => {
+const getHdImageForListing = async (category: string, title: string, listingId: string): Promise<string> => {
   const query = getSearchQueryForListing(category, title);
   const cache = getBotImageCache();
-  const cacheKey = `${query.toLowerCase()}_v8_final`; 
+  // Her ilana özel benzersiz bir cache key (id bazlı)
+  const cacheKey = `img_${listingId.toLowerCase().replace(/[^a-z0-9]/g, '_')}_v9`; 
   
   if (cache[cacheKey]) return cache[cacheKey];
 
-  // Unsplash gaming koleksiyonundan yüksek kaliteli ve güvenilir (CORS uyumlu) resimler
+  // Unsplash gaming koleksiyonu - her ilan için farklı bir sig/seed ekliyoruz
   const cleanTitle = title.replace(/[^\w\s]/gi, '');
-  const prompt = encodeURIComponent(`${category} ${cleanTitle} cinematic gaming art 4k`);
+  const prompt = encodeURIComponent(`${query} ${cleanTitle}`);
   
-  // Güvenilirlik için Unsplash Source kullanıyoruz (Pollinations 403 hataları verebiliyor)
-  const imageUrl = `https://source.unsplash.com/featured/1280x720?${prompt}&sig=${Math.floor(Math.random() * 1000000)}`;
+  // Benzersiz olması için Math.random ekliyoruz
+  const imageUrl = `https://source.unsplash.com/featured/1280x720?${prompt}&sig=${Math.random().toString(36).slice(2, 8)}`;
   
   try {
     const watermarkedUrl = await watermarkImage(imageUrl, category);
@@ -158,7 +159,7 @@ const getHdImageForListing = async (category: string, title: string): Promise<st
     setBotImageCache(cache);
     return watermarkedUrl;
   } catch (error) {
-    console.error("Filigranlama işlemi başarısız, orijinal resim kullanılıyor:", error);
+    console.error("Filigranlama işlemi başarısız:", error);
     return imageUrl;
   }
 };
@@ -301,11 +302,12 @@ export const generateBotListing = async (): Promise<BotListing> => {
   const title = rawTitle + (Math.random() > 0.4 ? pickRandom([" ⭐", " [OTO]", " %100", " ✅", " 🔥"]) : "");
   const price = categoryPool === "PVP Serverlar" ? "Tanıtım" : `${Math.floor(Math.random() * (maxPrice - minPrice) + minPrice)} ₺`;
   const seller = reserveUniqueBotName(); 
+  const id = `BOT-${Math.random().toString(36).slice(2, 7).toUpperCase()}`;
 
   const newListing: BotListing = { 
-    id: `BOT-${Math.random().toString(36).slice(2, 7).toUpperCase()}`, 
+    id, 
     title, category: categoryPool, seller, sellerAvatar: `https://ui-avatars.com/api/?name=${encodeURIComponent(seller)}&background=111827&color=FACC15`, price, 
-    image: await getHdImageForListing(categoryPool, title),
+    image: await getHdImageForListing(categoryPool, title, id),
     description, seoKeywords: [categoryPool.toLowerCase(), "bot"], 
     isAutoDelivery: categoryPool !== "PVP Serverlar" && Math.random() > 0.3, isBot: true, isPurchasable: false, availabilityMessage: "Ürün Mevcut Değil", stock: 0, 
     tags: ["Güvenilir", "Hızlı"], reviews: [],
