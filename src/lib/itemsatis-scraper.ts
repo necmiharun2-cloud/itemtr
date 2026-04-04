@@ -80,6 +80,32 @@ const getCategoryImage = (category: string, index: number): string => {
 // Cache for itemsatis data
 let itemsatisCache: ItemSatisListing[] = [];
 
+// Track used listing IDs to prevent duplicates
+const USED_IDS_KEY = "itemsatis_used_ids";
+
+const getUsedIds = (): string[] => {
+  const stored = localStorage.getItem(USED_IDS_KEY);
+  return stored ? JSON.parse(stored) : [];
+};
+
+const addUsedId = (id: string): void => {
+  const used = getUsedIds();
+  if (!used.includes(id)) {
+    used.push(id);
+    localStorage.setItem(USED_IDS_KEY, JSON.stringify(used));
+  }
+};
+
+const resetUsedIds = (): void => {
+  localStorage.removeItem(USED_IDS_KEY);
+};
+
+// Get available listings excluding used ones
+const getAvailableListings = (listings: ItemSatisListing[]): ItemSatisListing[] => {
+  const usedIds = getUsedIds();
+  return listings.filter(item => !usedIds.includes(item.id));
+};
+
 /**
  * Fetches and parses itemsatis.com listings with Unsplash images
  */
@@ -266,14 +292,29 @@ export const fetchItemSatisListings = async (category?: string): Promise<ItemSat
 };
 
 /**
- * Gets random listing from itemsatis pool
+ * Gets random listing from itemsatis pool - prevents duplicates
  */
 export const getRandomItemSatisListing = async (category?: string): Promise<ItemSatisListing | null> => {
-  const listings = await fetchItemSatisListings(category);
+  let listings = await fetchItemSatisListings(category);
   if (listings.length === 0) return null;
   
-  const randomIndex = Math.floor(Math.random() * listings.length);
-  return listings[randomIndex];
+  // Get available listings (excluding used ones)
+  let availableListings = getAvailableListings(listings);
+  
+  // If all listings are used, reset and start over
+  if (availableListings.length === 0) {
+    resetUsedIds();
+    availableListings = listings;
+    console.log("[ItemSatis] Tüm ilanlar kullanıldı, liste sıfırlandı");
+  }
+  
+  const randomIndex = Math.floor(Math.random() * availableListings.length);
+  const selected = availableListings[randomIndex];
+  
+  // Mark this ID as used
+  addUsedId(selected.id);
+  
+  return selected;
 };
 
 /**
