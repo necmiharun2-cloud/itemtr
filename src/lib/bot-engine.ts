@@ -1,5 +1,6 @@
 import { getMarketplaceListings, type MarketplaceListing, type ListingSection } from "./marketplace";
 import { sanitizeContent, getCombinedPvpPool, type KocuceItem } from "./rss-service";
+import { ListingVisualDirector } from "./visual-director";
 
 let kocucePvpCache: KocuceItem[] = (() => {
   const cached = localStorage.getItem("itemtr_kocuce_cache");
@@ -14,14 +15,14 @@ let kocucePvpCache: KocuceItem[] = (() => {
   return getCombinedPvpPool();
 })();
 
-const BOT_IMAGE_CACHE_KEY = "itemtr_bot_image_cache_v10_final"; // Versiyon atlatarak eski bozuk cache'i temizliyoruz
+const BOT_IMAGE_CACHE_KEY = "itemtr_bot_image_cache_v11_pro"; // Pro prompt sistemi için versiyon güncelleme
 const BOT_STATS_KEY = "itemtr_bot_stats";
 const BOT_HISTORY_KEY = "itemtr_bot_listings";
 const BOT_USED_NAMES_KEY = "itemtr_bot_used_names";
 const BOT_BACKUP_KEY = "itemtr_bot_listings_backup";
 const BOT_BULK_OVERRIDE_KEY = "itemtr_bot_bulk_override_url";
 const BOT_IMAGE_VERSION_KEY = "itemtr_bot_image_version";
-const CURRENT_IMAGE_VERSION = "hd-v10-final";
+const CURRENT_IMAGE_VERSION = "pro-visual-v11";
 export const BOT_LOGO_IMAGE = "/itemtr-bot-logo.svg";
 
 type BotImageCache = Record<string, string>;
@@ -175,24 +176,23 @@ const watermarkImage = async (imageUrl: string, text: string): Promise<string> =
   });
 };
 
-const getHdImageForListing = async (category: string, title: string, listingId: string): Promise<string> => {
+const getHdImageForListing = async (category: string, title: string, listingId: string, description: string = ""): Promise<string> => {
   const cache = getBotImageCache();
-  const cacheKey = `curated_${listingId}_v10`;
+  const cacheKey = `pro_${listingId}_v11`;
   
   if (cache[cacheKey]) return cache[cacheKey];
 
-  // Kategoriye göre küratörlü (seçilmiş) resim listesini al
-  let imagePool = CURATED_GAME_IMAGES[category] || CURATED_GAME_IMAGES["default"];
-  if (category.includes("PVP")) imagePool = CURATED_GAME_IMAGES["PVP Serverlar"];
-  if (category.includes("Valorant")) imagePool = CURATED_GAME_IMAGES["Valorant"];
-  if (category.includes("CS2") || category.includes("Counter")) imagePool = CURATED_GAME_IMAGES["CS2"];
-  if (category.includes("League") || category.includes("LoL")) imagePool = CURATED_GAME_IMAGES["League of Legends"];
-  if (category.includes("Roblox")) imagePool = CURATED_GAME_IMAGES["Roblox"];
-  if (category.includes("Metin2")) imagePool = CURATED_GAME_IMAGES["Metin2"];
+  // Visual Director ile profesyonel AI promptu üretimi
+  const professionalPrompt = ListingVisualDirector.generatePrompt({
+    category,
+    title,
+    description,
+    style: "premium"
+  });
 
-  const baseImageUrl = pickRandom(imagePool);
-  // Unsplash Source URL'sini oluştur (Garantili resim için)
-  const imageUrl = `${baseImageUrl}?q=80&w=1280&auto=format&fit=crop`;
+  // Pollinations AI - Karmaşık ve profesyonel promptları işlemek için ideal
+  const seed = Math.floor(Math.random() * 1000000);
+  const imageUrl = `https://image.pollinations.ai/prompt/${encodeURIComponent(professionalPrompt)}?width=1280&height=720&nologo=true&seed=${seed}`;
   
   try {
     const watermarkedUrl = await watermarkImage(imageUrl, category);
@@ -348,7 +348,7 @@ export const generateBotListing = async (): Promise<BotListing> => {
   const newListing: BotListing = { 
     id, 
     title, category: categoryPool, seller, sellerAvatar: `https://ui-avatars.com/api/?name=${encodeURIComponent(seller)}&background=111827&color=FACC15`, price, 
-    image: await getHdImageForListing(categoryPool, title, id),
+    image: await getHdImageForListing(categoryPool, title, id, description),
     description, seoKeywords: [categoryPool.toLowerCase(), "bot"], 
     isAutoDelivery: categoryPool !== "PVP Serverlar" && Math.random() > 0.3, isBot: true, isPurchasable: false, availabilityMessage: "Ürün Mevcut Değil", stock: 0, 
     tags: ["Güvenilir", "Hızlı"], reviews: [],
