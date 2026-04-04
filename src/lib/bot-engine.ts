@@ -58,17 +58,106 @@ const getSearchQueryForListing = (category: string, title: string) => {
   return `${category} gaming hd`.slice(0, 50);
 };
 
-const getHdImageForListing = (category: string, title: string) => {
+const watermarkImage = async (imageUrl: string, text: string): Promise<string> => {
+  return new Promise((resolve) => {
+    const img = new Image();
+    img.crossOrigin = "anonymous";
+    img.onload = () => {
+      const canvas = document.createElement("canvas");
+      const ctx = canvas.getContext("2d");
+      if (!ctx) {
+        resolve(imageUrl);
+        return;
+      }
+
+      // Set canvas size to match image or use a fixed HD resolution
+      canvas.width = img.width;
+      canvas.height = img.height;
+
+      // Draw the original image
+      ctx.drawImage(img, 0, 0);
+
+      // Add a stylized translucent watermark
+      const fontSize = Math.floor(canvas.height * 0.07);
+      ctx.font = `italic bold ${fontSize}px "Inter", sans-serif`;
+      ctx.textAlign = "center";
+      ctx.textBaseline = "middle";
+
+      // Draw glassmorphism style background for text (More prominent)
+      const textMetrics = ctx.measureText(text.toUpperCase());
+      const paddingX = 40;
+      const paddingY = 20;
+      const rectWidth = textMetrics.width + paddingX * 2;
+      const rectHeight = fontSize + paddingY * 2;
+      
+      // Rounded rectangle for the watermark background
+      const rx = (canvas.width - rectWidth) / 2;
+      const ry = (canvas.height - rectHeight) / 2;
+      const radius = 15;
+      
+      ctx.beginPath();
+      ctx.moveTo(rx + radius, ry);
+      ctx.lineTo(rx + rectWidth - radius, ry);
+      ctx.quadraticCurveTo(rx + rectWidth, ry, rx + rectWidth, ry + radius);
+      ctx.lineTo(rx + rectWidth, ry + rectHeight - radius);
+      ctx.quadraticCurveTo(rx + rectWidth, ry + rectHeight, rx + rectWidth - radius, ry + rectHeight);
+      ctx.lineTo(rx + radius, ry + rectHeight);
+      ctx.quadraticCurveTo(rx, ry + rectHeight, rx, ry + rectHeight - radius);
+      ctx.lineTo(rx, ry + radius);
+      ctx.quadraticCurveTo(rx, ry, rx + radius, ry);
+      ctx.closePath();
+      
+      ctx.fillStyle = "rgba(0, 0, 0, 0.7)"; // Darker for better contrast
+      ctx.fill();
+      
+      // Border for the glass effect
+      ctx.strokeStyle = "rgba(255, 255, 255, 0.2)";
+      ctx.lineWidth = 2;
+      ctx.stroke();
+
+      // Draw text with strong shadow for legibility
+      ctx.shadowColor = "rgba(0, 0, 0, 1)";
+      ctx.shadowBlur = 10;
+      ctx.fillStyle = "#FACC15"; // Brand yellow color
+      ctx.fillText(text.toUpperCase(), canvas.width / 2, canvas.height / 2 - 5);
+
+      // Add "ITEM-TR" secondary watermark at bottom
+      ctx.shadowBlur = 0;
+      ctx.font = `bold ${Math.floor(fontSize * 0.35)}px sans-serif`;
+      ctx.fillStyle = "rgba(255, 255, 255, 0.8)";
+      ctx.fillText("ITEMTR.COM - AI GENERATED", canvas.width / 2, (canvas.height + rectHeight) / 2 - 25);
+
+      resolve(canvas.toDataURL("image/jpeg", 0.85));
+    };
+    img.onerror = () => {
+      console.warn("AI Image load failed, using fallback:", imageUrl);
+      resolve(imageUrl);
+    };
+    img.src = imageUrl;
+  });
+};
+
+const getHdImageForListing = async (category: string, title: string): Promise<string> => {
   const query = getSearchQueryForListing(category, title);
   const cache = getBotImageCache();
-  const cacheKey = query.toLowerCase();
+  const cacheKey = `${query.toLowerCase()}_v6`; // New versioned cache key
   
   if (cache[cacheKey]) return cache[cacheKey];
 
-  const url = `https://source.unsplash.com/featured/1600x900?${encodeURIComponent(query)}&sig=${Math.random().toString(36).slice(2, 7)}`;
-  cache[cacheKey] = url;
-  setBotImageCache(cache);
-  return url;
+  // Simplified prompt to avoid filtering and 403s
+  const cleanTitle = title.replace(/[^\w\s]/gi, '');
+  const prompt = encodeURIComponent(`${category} ${cleanTitle} game wallpaper landscape`);
+  const imageUrl = `https://image.pollinations.ai/prompt/${prompt}?width=1024&height=768&nologo=true&seed=${Math.floor(Math.random() * 1000000)}`;
+  
+  try {
+    const watermarkedUrl = await watermarkImage(imageUrl, category);
+    cache[cacheKey] = watermarkedUrl;
+    setBotImageCache(cache);
+    return watermarkedUrl;
+  } catch (error) {
+    console.error("Watermarking failed:", error);
+    return imageUrl;
+  }
 };
 
 const isPlaceholderBotImage = (image?: string | null) => {
@@ -184,7 +273,7 @@ export const getBotHistory = (): BotListing[] => {
 export const getBotListingById = (listingId?: string | null) => listingId ? getBotHistory().find((listing) => listing.id === listingId) || null : null;
 export const isBotListingLocked = (listingId?: string | number | null) => { if (!listingId) return false; const normalizedId = String(listingId); if (normalizedId.startsWith("BOT-")) return true; const listing = getBotListingById(normalizedId); return Boolean(listing?.isBot); };
 
-export const generateBotListing = (): BotListing => { 
+export const generateBotListing = async (): Promise<BotListing> => { 
   const minPrice = Number(localStorage.getItem("itemtr_bot_min_price") || 10); 
   const maxPrice = Number(localStorage.getItem("itemtr_bot_max_price") || 2000); 
   const selectedCategory = localStorage.getItem("itemtr_bot_category") || "all"; 
@@ -213,7 +302,7 @@ export const generateBotListing = (): BotListing => {
   const newListing: BotListing = { 
     id: `BOT-${Math.random().toString(36).slice(2, 7).toUpperCase()}`, 
     title, category: categoryPool, seller, sellerAvatar: `https://ui-avatars.com/api/?name=${encodeURIComponent(seller)}&background=111827&color=FACC15`, price, 
-    image: getHdImageForListing(categoryPool, title),
+    image: await getHdImageForListing(categoryPool, title),
     description, seoKeywords: [categoryPool.toLowerCase(), "bot"], 
     isAutoDelivery: categoryPool !== "PVP Serverlar" && Math.random() > 0.3, isBot: true, isPurchasable: false, availabilityMessage: "Ürün Mevcut Değil", stock: 0, 
     tags: ["Güvenilir", "Hızlı"], reviews: [],
@@ -257,13 +346,13 @@ export const undoBotImageUpdate = () => {
 
 const initializeBotAutomation = () => {
   if (typeof window === "undefined") return;
-  const runAutomation = () => {
+  const runAutomation = async () => {
     if (localStorage.getItem("itemtr_bot_enabled") === "false") return;
     const intervalSec = Number(localStorage.getItem("itemtr_bot_interval") || "45");
     const lastRun = Number(localStorage.getItem("itemtr_bot_last_run") || "0");
     if (Date.now() - lastRun >= intervalSec * 1000) {
-      generateBotListing();
       localStorage.setItem("itemtr_bot_last_run", String(Date.now()));
+      await generateBotListing();
     }
   };
   setInterval(runAutomation, 10000);

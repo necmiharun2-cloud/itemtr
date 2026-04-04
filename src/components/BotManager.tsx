@@ -14,7 +14,9 @@ const BotManager = () => {
         
         const initialCount = Math.floor(Math.random() * 5) + 3;
         for (let i = 0; i < initialCount; i++) {
-          setTimeout(() => generateBotListing(), i * 1000);
+          setTimeout(async () => {
+            await generateBotListing();
+          }, i * 1000);
         }
         console.log(`[BotManager] Initialized with ${initialCount} starter listings`);
       }
@@ -22,7 +24,7 @@ const BotManager = () => {
 
     initBotSystem();
 
-    const runAutomationCheck = () => {
+    const runAutomationCheck = async () => {
       const isEnabled = localStorage.getItem("itemtr_bot_enabled") === "true";
       if (!isEnabled) return;
 
@@ -38,7 +40,7 @@ const BotManager = () => {
         
         if (Math.random() < threshold) {
           console.log(`[BotManager] Auto-generating listing (${new Date().toLocaleTimeString()})`);
-          generateBotListing();
+          await generateBotListing();
         }
       }
     };
