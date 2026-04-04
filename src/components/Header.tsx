@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { Search, User, Globe, Bell, Wallet, ChevronDown, LayoutDashboard, MessageCircle, ShieldCheck, ShoppingBag, PlusCircle, LogOut, LogIn, ChevronLeft, Gamepad2 } from "lucide-react";
+import { Search, User, Globe, Bell, Wallet, ChevronDown, ChevronRight, LayoutDashboard, MessageCircle, ShieldCheck, ShoppingBag, PlusCircle, LogOut, LogIn, ChevronLeft, Gamepad2 } from "lucide-react";
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import { cn } from "@/lib/utils";
 import { AUTH_CHANGED_EVENT, getCurrentUser, logoutUser } from "@/lib/auth";

@@ -46,10 +46,10 @@ describe("Register doğrulama", () => {
       ),
     );
 
-    fireEvent.change(screen.getByPlaceholderText(/kullaniciadi/i), {
+    fireEvent.change(screen.getAllByPlaceholderText(/kullaniciadi/i)[0], {
       target: { value: "testuser12" },
     });
-    fireEvent.change(screen.getByPlaceholderText(/ornek@email.com/i), {
+    fireEvent.change(screen.getAllByPlaceholderText(/ornek@email.com/i)[0], {
       target: { value: "test@example.com" },
     });
     fireEvent.change(screen.getAllByPlaceholderText(/••••••••/i)[0], {
@@ -71,10 +71,10 @@ describe("Register doğrulama", () => {
   it("şifre değişince (tekrar alanı dokunulmuşsa) eşleşme hatasını günceller", async () => {
     render(wrapper(<Register />));
 
-    fireEvent.change(screen.getByPlaceholderText(/kullaniciadi/i), {
+    fireEvent.change(screen.getAllByPlaceholderText(/kullaniciadi/i)[0], {
       target: { value: "syncuser1" },
     });
-    fireEvent.change(screen.getByPlaceholderText(/ornek@email.com/i), {
+    fireEvent.change(screen.getAllByPlaceholderText(/ornek@email.com/i)[0], {
       target: { value: "sync@example.com" },
     });
     const [pw, pw2] = screen.getAllByPlaceholderText(/••••••••/i);

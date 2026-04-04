@@ -434,7 +434,7 @@ export const getRandomItemSatisListingForBot = async (
     resetUsedIds();
     available = listings.filter((item) => priceInRange(item, minPrice, maxPrice));
   }
-  let chosen = pickFrom(available);
+  const chosen = pickFrom(available);
   if (chosen) return chosen;
 
   available = getAvailableListings(listings);

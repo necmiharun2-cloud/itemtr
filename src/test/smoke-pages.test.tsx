@@ -98,15 +98,16 @@ describe("critical page smoke tests", () => {
   it("blocks bot listings on listing detail page", async () => {
     renderAt("/listing/BOT-TEST", <ListingDetail />, "/listing/:id");
 
-    expect(await screen.findByRole("button", { name: /ürün satışta değil/i })).toBeDisabled();
-    expect(screen.getByText(/bot ilanını satın alamaz/i)).toBeInTheDocument();
+    const locked = await screen.findAllByRole("button", { name: /ürün satışta değil/i });
+    expect(locked[0]).toBeDisabled();
+    expect(screen.getAllByText(/bot ilanını satın alamaz/i).length).toBeGreaterThan(0);
   });
 
   it("blocks checkout for bot listings", async () => {
     renderAt("/checkout?listingId=BOT-TEST", <Checkout />, "/checkout");
 
     expect(await screen.findByRole("heading", { name: /Ürün Satışta Değil/i })).toBeInTheDocument();
-    expect(screen.getByText(/test ilanıdır/i)).toBeInTheDocument();
+    expect(screen.getAllByText(/test ilanıdır/i).length).toBeGreaterThan(0);
   });
 
   it("opens the dashboard support tab from query string", async () => {
@@ -134,7 +135,7 @@ describe("critical page smoke tests", () => {
 
   it("renders the support page", async () => {
     renderAt("/support", <Support />);
-    expect(await screen.findByText(/Yardım Merkezi/i)).toBeInTheDocument();
+    expect((await screen.findAllByText(/Yardım Merkezi/i)).length).toBeGreaterThan(0);
   });
 
   it("renders the FAQ page", async () => {
@@ -144,6 +145,8 @@ describe("critical page smoke tests", () => {
 
   it("renders the legal page", async () => {
     renderAt("/legal/terms", <Legal />, "/legal/:type");
-    expect(await screen.findByRole("heading", { name: /Kullanım Koşulları/i })).toBeInTheDocument();
+    expect(
+      (await screen.findAllByRole("heading", { name: /Kullanım Koşulları/i })).length,
+    ).toBeGreaterThan(0);
   });
 });

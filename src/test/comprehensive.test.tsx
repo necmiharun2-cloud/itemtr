@@ -3,6 +3,26 @@ import { render, screen, fireEvent, waitFor, within } from "@testing-library/rea
 import { MemoryRouter, Route, Routes } from "react-router-dom";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { toast } from "sonner";
+import type { AppUser } from "@/lib/auth";
+
+const minimalAppUser = (over: Partial<AppUser> = {}): AppUser => ({
+  id: "1",
+  role: "user",
+  name: "Test User",
+  username: "testuser",
+  email: "test@test.com",
+  phone: "",
+  avatar: "",
+  balance: 0,
+  rating: 0,
+  isVerified: false,
+  about: "",
+  smsSecurityEnabled: false,
+  bankAccountAdded: false,
+  levelState: { xp: 0, counts: {}, history: [] },
+  createdAt: "2026-01-01T00:00:00.000Z",
+  ...over,
+});
 
 // Import pages
 import Login from "@/pages/Login";
@@ -157,7 +177,7 @@ describe("Auth Flow Tests", () => {
     const { loginUser } = await import("@/lib/auth");
     vi.mocked(loginUser).mockResolvedValue({
       ok: true,
-      user: { id: "1", name: "Test User", role: "user" },
+      user: minimalAppUser({ id: "1", name: "Test User", role: "user" }),
     });
 
     render(
@@ -210,19 +230,12 @@ describe("Dashboard Tests", () => {
 
   it("should render dashboard for authenticated user", async () => {
     const { getCurrentUser } = await import("@/lib/auth");
-    vi.mocked(getCurrentUser).mockResolvedValue({
-      id: "1",
-      name: "Test User",
-      username: "testuser",
-      email: "test@test.com",
-      phone: "",
-      avatar: "",
-      balance: 1000,
-      rating: 4.5,
-      isVerified: false,
-      role: "user",
-      levelState: { xp: 0, counts: {}, history: [] },
-    });
+    vi.mocked(getCurrentUser).mockResolvedValue(
+      minimalAppUser({
+        balance: 1000,
+        rating: 4.5,
+      }),
+    );
     
     render(
       <TestWrapper>
@@ -239,10 +252,7 @@ describe("Dashboard Tests", () => {
 describe("Protected Route Tests", () => {
   it("should protect admin routes", async () => {
     const { getCurrentUser } = await import("@/lib/auth");
-    vi.mocked(getCurrentUser).mockResolvedValue({
-      id: "1",
-      role: "user",
-    });
+    vi.mocked(getCurrentUser).mockResolvedValue(minimalAppUser({ id: "1", role: "user" }));
     
     render(
       <MemoryRouter
@@ -288,12 +298,7 @@ describe("API Error Handling Tests", () => {
     localStorageMock.getItem.mockReturnValue("invalid json");
     
     const { getCurrentUser } = await import("@/lib/auth");
-    vi.mocked(getCurrentUser).mockResolvedValue({
-      id: "1",
-      name: "Test",
-      role: "user",
-      levelState: { xp: 0, counts: {}, history: [] },
-    });
+    vi.mocked(getCurrentUser).mockResolvedValue(minimalAppUser({ name: "Test" }));
     
     // Should not crash on malformed localStorage data
     render(
@@ -328,17 +333,11 @@ describe("Async Operation Tests", () => {
   it("should handle concurrent async operations", async () => {
     const { getCurrentUser, updateCurrentUser } = await import("@/lib/auth");
     
-    vi.mocked(getCurrentUser).mockResolvedValue({
-      id: "1",
-      name: "Test",
-      balance: 100,
-      role: "user",
-      levelState: { xp: 0, counts: {}, history: [] },
-    });
+    vi.mocked(getCurrentUser).mockResolvedValue(minimalAppUser({ name: "Test", balance: 100 }));
 
     vi.mocked(updateCurrentUser).mockImplementation(async () => {
-      await new Promise(resolve => setTimeout(resolve, 100));
-      return { id: "1", balance: 200 };
+      await new Promise((resolve) => setTimeout(resolve, 100));
+      return minimalAppUser({ balance: 200 });
     });
     
     render(

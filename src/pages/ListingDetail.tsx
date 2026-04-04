@@ -5,7 +5,7 @@ import Header from "@/components/Header";
 import NavMenu from "@/components/NavMenu";
 import Footer from "@/components/Footer";
 import ListingCard from "@/components/ListingCard";
-import { User, Shield, Star, Clock, MessageCircle, ShoppingCart, Heart, Flag, ChevronRight, CheckCircle, AlertTriangle, HelpCircle, Loader2 } from "lucide-react";
+import { User, Shield, Star, Clock, MessageCircle, ShoppingCart, Heart, Flag, ChevronRight, CheckCircle, HelpCircle, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { getMarketplaceListingById, getMarketplaceListings } from "@/lib/marketplace";
@@ -158,6 +158,7 @@ const ListingDetail = () => {
   }, [id]);
 
   const isLocked = useMemo(() => isBotListingLocked(id), [id]);
+  const canPurchase = listing ? listing.isPurchasable !== false && !isLocked : false;
   const [isCheckingOut, setIsCheckingOut] = useState(false);
   const [favorited, setFavorited] = useState(false);
   const [favoriteBusy, setFavoriteBusy] = useState(false);
@@ -256,7 +257,7 @@ const ListingDetail = () => {
 
   const handleCheckout = async () => {
     if (!listing) return;
-    if (isLocked) {
+    if (isLocked || listing.isPurchasable === false) {
       toast.error("Ürün satışta değil.");
       return;
     }
@@ -406,12 +407,12 @@ const ListingDetail = () => {
                 <span>{listing.favorites || 0} favori</span>
               </div>
 
-              <div className="flex flex-wrap gap-2">{(listing.features || []).map((f) => <span key={f} className="flex items-center gap-1 px-3 py-1.5 rounded-lg bg-success/10 text-success text-xs font-medium"><CheckCircle className="h-3.5 w-3.5" />{f}</span>)}</div>
+              <div className="flex flex-wrap gap-2">{(listing.features || []).map((f, i) => <span key={`${f}-${i}`} className="flex items-center gap-1 px-3 py-1.5 rounded-lg bg-success/10 text-success text-xs font-medium"><CheckCircle className="h-3.5 w-3.5" />{f}</span>)}</div>
               {listing.tags && listing.tags.length > 0 && (
                 <div className="flex flex-wrap gap-2">
-                  {listing.tags.map((tag) => (
+                  {listing.tags.map((tag, ti) => (
                     <span 
-                      key={tag} 
+                      key={`${tag}-${ti}`} 
                       onClick={() => navigate(`/category?q=${encodeURIComponent(tag)}`)}
                       className="rounded-lg border border-border bg-secondary px-3 py-1 text-xs text-muted-foreground hover:text-primary hover:border-primary/40 transition-colors cursor-pointer"
                     >
@@ -471,10 +472,10 @@ const ListingDetail = () => {
                 </div>
                 <Button 
                   onClick={handleCheckout} 
-                  disabled={isCheckingOut || isLocked}
+                  disabled={isCheckingOut || !canPurchase}
                   className={cn(
                     "w-full rounded-xl h-12 text-base font-semibold gap-2",
-                    isLocked && "opacity-50 cursor-not-allowed bg-muted text-muted-foreground hover:bg-muted"
+                    !canPurchase && "opacity-50 cursor-not-allowed bg-muted text-muted-foreground hover:bg-muted"
                   )}
                 >
                   {isCheckingOut ? (
@@ -482,11 +483,20 @@ const ListingDetail = () => {
                   ) : (
                     <ShoppingCart className="h-5 w-5" />
                   )}
-                  {isLocked ? "Ürün Satışta Değil" : isCheckingOut ? "Kontrol Ediliyor..." : "Satın Al"}
+                  {!canPurchase
+                    ? "Ürün Satışta Değil"
+                    : isCheckingOut
+                      ? "Kontrol Ediliyor..."
+                      : "Satın Al"}
                 </Button>
                 {isLocked && (
                   <p className="text-[11px] text-center text-amber-500/90 font-bold uppercase tracking-wide leading-snug">
                     Gerçek kullanıcılar bu bot ilanını satın alamaz.
+                  </p>
+                )}
+                {!canPurchase && !isLocked && (
+                  <p className="text-[11px] text-center text-muted-foreground">
+                    Bu ilan şu an satın alınamıyor.
                   </p>
                 )}
                 <div className="flex gap-2">
@@ -734,8 +744,11 @@ const ListingDetail = () => {
             </div>
 
             {/* Yardım Card */}
-            <div className="bg-card rounded-2xl border border-border p-5 space-y-3 relative overflow-hidden group hover:border-blue-500/30 transition-colors cursor-pointer">
-              <div className="absolute top-0 left-0 w-1 h-full bg-blue-500 opacity-40"></div>
+            <Link
+              to="/support"
+              className="block bg-card rounded-2xl border border-border p-5 space-y-3 relative overflow-hidden group hover:border-blue-500/30 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+            >
+              <div className="absolute top-0 left-0 w-1 h-full bg-blue-500 opacity-40" />
               <div className="flex items-start gap-4">
                 <div className="flex-shrink-0 w-10 h-10 rounded-full bg-blue-500/10 flex items-center justify-center">
                   <HelpCircle className="h-5 w-5 text-blue-500" />
@@ -747,7 +760,7 @@ const ListingDetail = () => {
                   </p>
                 </div>
               </div>
-            </div>
+            </Link>
           </div>
         </div>
 
