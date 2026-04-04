@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { User, Heart, Eye, Zap, ShieldCheck } from "lucide-react";
 import { Link } from "react-router-dom";
 import { cn } from "@/lib/utils";
@@ -21,6 +21,9 @@ interface ListingCardProps {
   section?: "vitrin" | "new" | "pvp";
   sellerXp?: number;
 }
+
+const CARD_IMAGE_FALLBACK =
+  "https://images.unsplash.com/photo-1511512578047-dfb367046420?w=800&q=80&auto=format&fit=crop";
 
 const badgeMap = {
   vitrin: { label: "Vitrin İlanı", className: "bg-[hsl(var(--badge-vitrin))] text-[hsl(var(--badge-vitrin-foreground))]" },
@@ -45,6 +48,11 @@ const ListingCard = ({
   sellerXp = 0,
 }: ListingCardProps) => {
   const [favorite, setFavorite] = useState(false);
+  const [displayImage, setDisplayImage] = useState(image || CARD_IMAGE_FALLBACK);
+
+  useEffect(() => {
+    setDisplayImage(image || CARD_IMAGE_FALLBACK);
+  }, [image]);
   const isPvp = category === "PVP Serverlar";
   const currentPrice = Number(String(price).replace(/[^\d,]/g, "").replace(",", "."));
   const previousPrice = oldPrice ? Number(String(oldPrice).replace(/[^\d,]/g, "").replace(",", ".")) : 0;
@@ -76,11 +84,12 @@ const ListingCard = ({
     >
       <div className="relative">
         <div className={cn("flex h-36 w-full items-center justify-center overflow-hidden relative", imageColor)}>
-          {image ? (
-            <img 
-              src={image} 
-              alt={title} 
-              className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105" 
+          {displayImage ? (
+            <img
+              src={displayImage}
+              alt={title}
+              className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
+              onError={() => setDisplayImage(CARD_IMAGE_FALLBACK)}
             />
           ) : (
             <span className="text-4xl opacity-60 transition-transform group-hover:scale-110">{emoji}</span>

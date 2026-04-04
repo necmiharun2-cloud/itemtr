@@ -83,15 +83,18 @@ export const getConversations = async (): Promise<Conversation[]> => {
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) return [];
 
+    const appUser = await getCurrentUser();
+    if (!appUser) return [];
+
     const { data, error } = await supabase
       .from('conversations')
       .select(`
         *,
         participant_1:profiles!conversations_participant_1_fkey (
-          id, name, avatar, role
+          id, username, name, avatar, role
         ),
         participant_2:profiles!conversations_participant_2_fkey (
-          id, name, avatar, role
+          id, username, name, avatar, role
         )
       `)
       .or(`participant_1.eq.${user.id},participant_2.eq.${user.id}`)
@@ -107,7 +110,8 @@ export const getConversations = async (): Promise<Conversation[]> => {
 
     for (const conv of conversations) {
       const otherParticipant = conv.participant_1.id === user.id ? conv.participant_2 : conv.participant_1;
-      
+      const otherLabel = otherParticipant.username || otherParticipant.name || "Satıcı";
+
       const { data: messages, error: msgError } = await supabase
         .from('messages')
         .select('*')
@@ -122,25 +126,30 @@ export const getConversations = async (): Promise<Conversation[]> => {
       result.push({
         id: conv.id,
         type: "direct",
-        subject: `${otherParticipant.name} ile görüşme`,
+        subject: conv.listing_id ? (conv.last_message || `${otherLabel} — ilan mesajı`) : `${otherLabel} ile görüşme`,
         participants: [
-          createUserParticipant(user),
+          {
+            id: appUser.id,
+            name: appUser.name,
+            role: appUser.role,
+            avatar: appUser.avatar,
+          },
           {
             id: otherParticipant.id,
-            name: otherParticipant.name,
-            role: otherParticipant.role,
+            name: otherLabel,
+            role: (otherParticipant.role as UserRole) || "user",
             avatar: otherParticipant.avatar,
-          }
+          },
         ],
-        messages: (messages || []).map(msg => ({
+        messages: (messages || []).map((msg) => ({
           id: msg.id,
           senderId: msg.sender_id,
-          senderName: msg.sender_id === user.id ? user.name : otherParticipant.name,
-          senderRole: msg.sender_id === user.id ? user.role : otherParticipant.role,
+          senderName: msg.sender_id === user.id ? appUser.name : otherLabel,
+          senderRole: msg.sender_id === user.id ? appUser.role : (otherParticipant.role as UserRole) || "user",
           text: msg.content,
           createdAt: msg.created_at,
         })),
-        unreadBy: conv.unread_by || [],
+        unreadBy: Array.isArray(conv.unread_by) ? conv.unread_by : [],
         createdAt: conv.created_at,
         updatedAt: conv.last_message_at,
       });
@@ -229,46 +238,71 @@ export const sendMessage = async (conversationId: string, text: string): Promise
   }
 };
 
-// Create new conversation
-export const createConversation = async (participantId: string, subject: string, listingId?: string): Promise<string | null> => {
+// Create new conversation (optionally scoped to a listing UUID)
+export const createConversation = async (participantId: string, subject: string, listingId?: string | null): Promise<string | null> => {
   try {
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) return null;
+    if (user.id === participantId) return null;
 
-    // Check if conversation already exists
-    const { data: existing } = await supabase
-      .from('conversations')
-      .select('id')
-      .or(`and(participant_1.eq.${user.id},participant_2.eq.${participantId}),(participant_1.eq.${participantId},participant_2.eq.${user.id})`)
-      .limit(1);
+    let existingQuery = supabase
+      .from("conversations")
+      .select("id")
+      .or(
+        `and(participant_1.eq.${user.id},participant_2.eq.${participantId}),and(participant_1.eq.${participantId},participant_2.eq.${user.id})`,
+      );
 
-    if (existing && existing.length > 0) {
-      return existing[0].id;
+    if (listingId) {
+      existingQuery = existingQuery.eq("listing_id", listingId);
+    } else {
+      existingQuery = existingQuery.is("listing_id", null);
     }
 
-    // Create new conversation
+    const { data: existingRow } = await existingQuery.maybeSingle();
+    if (existingRow?.id) {
+      return existingRow.id;
+    }
+
     const { data, error } = await supabase
-      .from('conversations')
+      .from("conversations")
       .insert({
         participant_1: user.id,
         participant_2: participantId,
         listing_id: listingId || null,
-        last_message: subject,
+        last_message: subject.slice(0, 500),
         last_message_at: nowIso(),
       })
-      .select('id')
+      .select("id")
       .single();
 
     if (error) {
-      console.error('[Messaging] Error creating conversation:', error);
+      console.error("[Messaging] Error creating conversation:", error);
       return null;
     }
 
     return data.id;
   } catch (error) {
-    console.error('[Messaging] Error in createConversation:', error);
+    console.error("[Messaging] Error in createConversation:", error);
     return null;
   }
+};
+
+/** İlan sayfasından: satıcı profil UUID + ilan UUID ile sohbet aç ve gerekirse ilk mesajı gönder */
+export const openListingConversation = async (
+  sellerProfileId: string,
+  listingId: string,
+  listingTitle: string,
+): Promise<string | null> => {
+  const subject = `İlan: ${listingTitle}`.slice(0, 500);
+  const convId = await createConversation(sellerProfileId, subject, listingId);
+  if (!convId) return null;
+
+  const messages = await getMessages(convId);
+  if (messages.length === 0) {
+    const ok = await sendMessage(convId, `Merhaba, "${listingTitle}" ilanı hakkında yazıyorum.`);
+    if (!ok) return convId;
+  }
+  return convId;
 };
 
 // Mark messages as read

@@ -11,7 +11,16 @@ import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { cn } from "@/lib/utils";
 import { getCurrentUser } from "@/lib/auth";
-import { getConversationCounterpart, getConversationSummary, getVisibleConversations, markConversationRead, MESSAGING_EVENT, sendConversationMessage, type Conversation } from "@/lib/messaging";
+import {
+  getConversationCounterpart,
+  getConversationSummary,
+  getVisibleConversations,
+  markConversationRead,
+  MESSAGING_EVENT,
+  sendChatMessage,
+  viewerIdentityIds,
+  type Conversation,
+} from "@/lib/messaging";
 
 const Messages = () => {
   const [searchParams] = useSearchParams();
@@ -46,17 +55,17 @@ const Messages = () => {
     return () => window.removeEventListener(MESSAGING_EVENT, syncConversations);
   }, [syncConversations]);
 
-  const viewerId = currentUser?.username || "";
+  const viewerIds = useMemo(() => viewerIdentityIds(currentUser), [currentUser]);
 
   const filteredConversations = useMemo(() => {
     const needle = search.trim().toLowerCase();
     if (!needle) return conversations;
 
     return conversations.filter((conversation) => {
-      const summary = getConversationSummary(conversation, viewerId);
+      const summary = getConversationSummary(conversation, viewerIds);
       return [summary.title, summary.subtitle, summary.lastMessage].some((value) => value.toLowerCase().includes(needle));
     });
-  }, [conversations, search, viewerId]);
+  }, [conversations, search, viewerIds]);
 
   const selectedConversation = filteredConversations.find((conversation) => conversation.id === selectedConversationId)
     || conversations.find((conversation) => conversation.id === selectedConversationId)
@@ -64,13 +73,13 @@ const Messages = () => {
     || conversations[0]
     || null;
 
-  const summary = selectedConversation ? getConversationSummary(selectedConversation, viewerId) : null;
-  const counterpart = selectedConversation ? getConversationCounterpart(selectedConversation, viewerId) : null;
+  const summary = selectedConversation ? getConversationSummary(selectedConversation, viewerIds) : null;
+  const counterpart = selectedConversation ? getConversationCounterpart(selectedConversation, viewerIds) : null;
 
   useEffect(() => {
-    if (!selectedConversation || !viewerId) return;
-    markConversationRead(selectedConversation.id, viewerId);
-  }, [selectedConversationId, selectedConversation, viewerId]);
+    if (!selectedConversation || viewerIds.length === 0) return;
+    void markConversationRead(selectedConversation.id, viewerIds);
+  }, [selectedConversationId, selectedConversation, viewerIds]);
 
   useEffect(() => {
     if (scrollRef.current) {
@@ -82,16 +91,14 @@ const Messages = () => {
     e.preventDefault();
     if (!selectedConversation || !currentUser || !newMessage.trim()) return;
 
-    sendConversationMessage(
-      selectedConversation.id,
-      {
-        id: currentUser.username,
-        name: currentUser.name,
-        role: currentUser.role,
-        avatar: currentUser.avatar,
-      },
-      newMessage,
-    );
+    const localSender = {
+      id: currentUser.username,
+      name: currentUser.name,
+      role: currentUser.role,
+      avatar: currentUser.avatar,
+    };
+    const ok = await sendChatMessage(selectedConversation.id, localSender, newMessage);
+    if (!ok) return;
     setNewMessage("");
     await syncConversations();
   };
@@ -125,7 +132,7 @@ const Messages = () => {
                 <div className="p-6 text-sm text-muted-foreground flex items-center"><Loader2 className="h-4 w-4 animate-spin mr-2" />Sohbetler yükleniyor...</div>
               ) : filteredConversations.length > 0 ? (
                 filteredConversations.map((conversation) => {
-                  const item = getConversationSummary(conversation, viewerId);
+                  const item = getConversationSummary(conversation, viewerIds);
                   return (
                     <button
                       key={conversation.id}
@@ -178,17 +185,19 @@ const Messages = () => {
               <ScrollArea className="flex-1 p-6">
                 <div className="space-y-4">
                   {selectedConversation.messages.length > 0 ? (
-                    selectedConversation.messages.map((message) => (
-                      <div key={message.id} className={cn("flex flex-col max-w-[75%] space-y-1.5", message.senderId === viewerId ? "ml-auto items-end" : "mr-auto items-start")}>
-                        <div className={cn("px-5 py-3 rounded-2xl text-sm leading-relaxed", message.senderId === viewerId ? "bg-primary text-primary-foreground rounded-tr-none" : "bg-secondary text-foreground rounded-tl-none")}>
+                    selectedConversation.messages.map((message) => {
+                      const isOwn = viewerIds.includes(message.senderId);
+                      return (
+                      <div key={message.id} className={cn("flex flex-col max-w-[75%] space-y-1.5", isOwn ? "ml-auto items-end" : "mr-auto items-start")}>
+                        <div className={cn("px-5 py-3 rounded-2xl text-sm leading-relaxed", isOwn ? "bg-primary text-primary-foreground rounded-tr-none" : "bg-secondary text-foreground rounded-tl-none")}>
                           {message.text}
                         </div>
                         <div className="flex items-center gap-1.5 px-1 text-[10px] text-muted-foreground">
                           <span>{new Date(message.createdAt).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}</span>
-                          {message.senderId === viewerId && <CheckCheck className="h-3 w-3 text-primary" />}
+                          {isOwn && <CheckCheck className="h-3 w-3 text-primary" />}
                         </div>
                       </div>
-                    ))
+                    );})
                   ) : (
                     <div className="rounded-2xl border border-border bg-secondary/50 p-5 text-sm text-muted-foreground">Henüz mesaj yok.</div>
                   )}

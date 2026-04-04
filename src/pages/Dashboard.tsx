@@ -41,7 +41,7 @@ import { Card, CardHeader, CardTitle, CardContent, CardDescription } from "@/com
 import { cn, safeJSONParse } from "@/lib/utils";
 import { AUTH_CHANGED_EVENT, getCurrentUser, rewardCurrentUser, updateCurrentUser } from "@/lib/auth";
 import { getLevelTier } from "@/lib/levels";
-import { createSupportConversation, getConversationSummary, getSupportTicketsForCurrentUser, getVisibleConversations, MESSAGING_EVENT } from "@/lib/messaging";
+import { createSupportConversation, getConversationSummary, getSupportTicketsForCurrentUser, getVisibleConversations, MESSAGING_EVENT, viewerIdentityIds } from "@/lib/messaging";
 import { getWalletTransactions, getUserBalance } from "@/lib/wallet";
 import { supabase } from "@/lib/supabase";
 import { seedNotifications, getNotifications, markAllNotificationsRead } from "@/lib/notifications";
@@ -300,7 +300,7 @@ const Dashboard = () => {
         (await getVisibleConversations())
           .slice(0, 3)
           .map((conversation) => {
-            const summary = getConversationSummary(conversation, current.username);
+            const summary = getConversationSummary(conversation, viewerIdentityIds(current));
             return {
               id: conversation.id,
               user: summary.counterpart?.name || summary.title,

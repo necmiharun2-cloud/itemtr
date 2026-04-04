@@ -357,12 +357,23 @@ const applyAdminBotDecorations = (listing: BotListing) => {
 export const getBotHistory = (): BotListing[] => {
   const storedVersion = localStorage.getItem(BOT_IMAGE_VERSION_KEY);
   const history = safeJSONParse<BotListing[]>(localStorage.getItem(BOT_HISTORY_KEY), []);
-  if (storedVersion !== CURRENT_IMAGE_VERSION || history.some(l => isPlaceholderBotImage(l.image))) {
+  if (storedVersion !== CURRENT_IMAGE_VERSION) {
     localStorage.removeItem(BOT_HISTORY_KEY);
     localStorage.setItem(BOT_IMAGE_VERSION_KEY, CURRENT_IMAGE_VERSION);
     return [];
   }
-  return history;
+  let patched = false;
+  const next = history.map((l) => {
+    if (!isPlaceholderBotImage(l.image) && String(l.image || "").trim()) return l;
+    patched = true;
+    const base = curatedFallbackForCategory(l.category, l.title);
+    const sep = base.includes("?") ? "&" : "?";
+    return { ...l, image: `${base}${sep}w=800&q=80` };
+  });
+  if (patched) {
+    localStorage.setItem(BOT_HISTORY_KEY, JSON.stringify(next.slice(0, 500)));
+  }
+  return next;
 };
 
 export const getBotListingById = (listingId?: string | null) => listingId ? getBotHistory().find((listing) => listing.id === listingId) || null : null;

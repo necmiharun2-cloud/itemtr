@@ -3,7 +3,7 @@ import { Search, User, Globe, Bell, Wallet, ChevronDown, LayoutDashboard, Messag
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import { cn } from "@/lib/utils";
 import { AUTH_CHANGED_EVENT, getCurrentUser, logoutUser } from "@/lib/auth";
-import { getVisibleConversations } from "@/lib/messaging";
+import { getVisibleConversations, viewerIdentityIds } from "@/lib/messaging";
 import {
   getNotifications,
   markAllNotificationsRead,
@@ -56,7 +56,10 @@ const Header = () => {
 
       if (currentUser) {
         const conversations = await getVisibleConversations();
-        const unread = (conversations || []).filter((conversation) => (conversation.unreadBy || []).includes(currentUser.username)).length;
+        const vids = viewerIdentityIds(currentUser);
+        const unread = (conversations || []).filter((conversation) =>
+          (conversation.unreadBy || []).some((uid) => vids.includes(uid)),
+        ).length;
         setMessageUnreadCount(unread);
       } else {
         setMessageUnreadCount(0);

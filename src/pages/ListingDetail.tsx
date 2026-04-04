@@ -15,6 +15,24 @@ import { toast } from "sonner";
 import { getCurrentUser } from "@/lib/auth";
 import { supabase } from "@/lib/supabase";
 import { cn } from "@/lib/utils";
+import { startChatFromListing } from "@/lib/messaging";
+import { isListingFavorited, toggleListingFavorite, saveListingReportLocally } from "@/lib/listing-actions";
+import {
+  Dialog,
+  DialogContent,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { Textarea } from "@/components/ui/textarea";
+import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 const ListingDetail = () => {
   const { id } = useParams();
@@ -43,6 +61,7 @@ const ListingDetail = () => {
           category: supabaseListing.category,
           game: supabaseListing.game,
           seller: supabaseListing.profiles?.username || 'Bilinmiyor',
+          sellerId: supabaseListing.seller_id || null,
           sellerAvatar: supabaseListing.profiles?.avatar || '',
           price: `₺${supabaseListing.price}`,
           description: supabaseListing.description,
@@ -68,7 +87,7 @@ const ListingDetail = () => {
       // Supabase'de yoksa local/bot listesine bak
       const staticListing = getMarketplaceListingById(id);
       if (staticListing) {
-        setListing(staticListing);
+        setListing({ ...staticListing, sellerId: staticListing.seller_id ?? null });
         setLoading(false);
         return;
       }
@@ -81,6 +100,7 @@ const ListingDetail = () => {
           category: botListing.category,
           game: botListing.category,
           seller: botListing.seller,
+          sellerId: null,
           price: botListing.price,
           description: botListing.description,
           features: ['Canlı Vitrin', 'Anlık Güncelleme', 'Otomatik Etiketleme'],
@@ -109,6 +129,7 @@ const ListingDetail = () => {
           category: "CS2 / HESAP SATIŞI",
           game: "CS2",
           seller: "İtemTR Bot",
+          sellerId: null,
           sellerAvatar: "",
           price: "₺99,90",
           description: "Bu ilan bot tarafından oluşturulmuş test ilanıdır.",
@@ -138,6 +159,100 @@ const ListingDetail = () => {
 
   const isLocked = useMemo(() => isBotListingLocked(id), [id]);
   const [isCheckingOut, setIsCheckingOut] = useState(false);
+  const [favorited, setFavorited] = useState(false);
+  const [favoriteBusy, setFavoriteBusy] = useState(false);
+  const [chatBusy, setChatBusy] = useState(false);
+  const [reportOpen, setReportOpen] = useState(false);
+  const [reportReason, setReportReason] = useState("spam");
+  const [reportDetails, setReportDetails] = useState("");
+  const [heroImage, setHeroImage] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!listing?.id) return;
+    setHeroImage(listing.image || null);
+    void (async () => {
+      const u = await getCurrentUser();
+      if (!u) {
+        setFavorited(false);
+        return;
+      }
+      setFavorited(await isListingFavorited(String(listing.id), u));
+    })();
+  }, [listing?.id, listing?.image]);
+
+  const openSellerChat = async () => {
+    if (!listing) return;
+    setChatBusy(true);
+    try {
+      const u = await getCurrentUser();
+      if (!u) {
+        toast.error("Mesaj göndermek için giriş yapmalısınız.");
+        navigate(`/login?redirect=${encodeURIComponent(`/listing/${id}`)}`);
+        return;
+      }
+      const result = await startChatFromListing({
+        listingId: String(listing.id),
+        listingTitle: listing.title,
+        sellerUsername: listing.seller,
+        sellerProfileId: listing.sellerId ?? null,
+        sellerAvatarUrl: listing.sellerAvatar,
+      });
+      if (result.reason === "self") {
+        toast.error("Kendi ilanınıza mesaj gönderemezsiniz.");
+        return;
+      }
+      if (!result.ok || !result.conversationId) {
+        toast.error("Sohbet başlatılamadı. Veritabanı politikalarını veya bağlantıyı kontrol edin.");
+        return;
+      }
+      navigate(`/messages?chat=${encodeURIComponent(result.conversationId)}`);
+    } finally {
+      setChatBusy(false);
+    }
+  };
+
+  const handleFavoriteClick = async () => {
+    if (!listing) return;
+    setFavoriteBusy(true);
+    try {
+      const u = await getCurrentUser();
+      if (!u) {
+        toast.error("Favorilere eklemek için giriş yapmalısınız.");
+        navigate(`/login?redirect=${encodeURIComponent(`/listing/${id}`)}`);
+        return;
+      }
+      const { ok, favorited: next, error } = await toggleListingFavorite(String(listing.id), u);
+      if (!ok) {
+        toast.error(error || "İşlem başarısız.");
+        return;
+      }
+      setFavorited(next);
+      toast.success(next ? "İlan favorilere eklendi." : "İlan favorilerden çıkarıldı.");
+    } finally {
+      setFavoriteBusy(false);
+    }
+  };
+
+  const submitReport = async () => {
+    if (!listing) return;
+    const u = await getCurrentUser();
+    if (!u) {
+      toast.error("Şikayet için giriş yapmalısınız.");
+      navigate(`/login?redirect=${encodeURIComponent(`/listing/${id}`)}`);
+      return;
+    }
+    saveListingReportLocally({
+      listingId: String(listing.id),
+      listingTitle: listing.title,
+      reason: reportReason,
+      details: reportDetails.trim(),
+      reporterUsername: u.username,
+      reporterId: u.id,
+    });
+    setReportOpen(false);
+    setReportDetails("");
+    toast.success("Şikayetiniz alındı. İnceleme için teşekkürler.");
+  };
 
   const handleCheckout = async () => {
     if (!listing) return;
@@ -255,7 +370,14 @@ const ListingDetail = () => {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           <div className="lg:col-span-2 space-y-4">
             <div className={`relative w-full h-64 md:h-80 rounded-2xl ${listing.imageColor || "bg-gradient-to-br from-slate-700/40 to-slate-900/50"} overflow-hidden`}>
-              {listing.image ? <img src={listing.image} alt={listing.title} className="w-full h-full object-cover" /> : null}
+              {heroImage ? (
+                <img
+                  src={heroImage}
+                  alt={listing.title}
+                  className="w-full h-full object-cover"
+                  onError={() => setHeroImage(BOT_LOGO_IMAGE)}
+                />
+              ) : null}
               
               {/* PVP SERVER OVERLAY */}
               {listing.category === "PVP Serverlar" && (
@@ -367,8 +489,38 @@ const ListingDetail = () => {
                     Gerçek kullanıcılar bu bot ilanını satın alamaz.
                   </p>
                 )}
-                <div className="flex gap-2"><Button variant="outline" className="flex-1 rounded-xl gap-2" type="button"><Heart className="h-4 w-4" />Favorile</Button><Link to="/messages" className="flex-1"><Button variant="outline" className="w-full rounded-xl gap-2"><MessageCircle className="h-4 w-4" />Mesaj Gönder</Button></Link></div>
-                <Button variant="ghost" size="sm" className="w-full text-muted-foreground gap-2" type="button"><Flag className="h-4 w-4" />İlanı Şikayet Et</Button>
+                <div className="flex gap-2">
+                  <Button
+                    variant="outline"
+                    className="flex-1 rounded-xl gap-2"
+                    type="button"
+                    disabled={favoriteBusy}
+                    onClick={() => void handleFavoriteClick()}
+                  >
+                    <Heart className={cn("h-4 w-4", favorited && "fill-primary text-primary")} />
+                    {favorited ? "Favorilerde" : "Favorile"}
+                  </Button>
+                  <Button
+                    variant="outline"
+                    className="flex-1 rounded-xl gap-2"
+                    type="button"
+                    disabled={chatBusy}
+                    onClick={() => void openSellerChat()}
+                  >
+                    {chatBusy ? <Loader2 className="h-4 w-4 animate-spin" /> : <MessageCircle className="h-4 w-4" />}
+                    Mesaj Gönder
+                  </Button>
+                </div>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="w-full text-muted-foreground gap-2"
+                  type="button"
+                  onClick={() => setReportOpen(true)}
+                >
+                  <Flag className="h-4 w-4" />
+                  İlanı Şikayet Et
+                </Button>
               </div>
             ) : (
               <div className="bg-card rounded-2xl border border-border p-6 space-y-4">
@@ -376,7 +528,38 @@ const ListingDetail = () => {
                   <span className="text-xl font-black text-primary uppercase italic tracking-tighter">SERVER TANITIMI</span>
                 </div>
                 <p className="text-xs text-muted-foreground leading-relaxed">Bu bir server tanıtım ilanıdır. Daha fazla bilgi için açıklama kısmını inceleyebilir veya satıcı ile iletişime geçebilirsiniz.</p>
-                <div className="flex gap-2"><Button variant="outline" className="flex-1 rounded-xl gap-2" type="button"><Heart className="h-4 w-4" />Favorile</Button><Link to="/messages" className="flex-1"><Button variant="outline" className="w-full rounded-xl gap-2"><MessageCircle className="h-4 w-4" />Mesaj Gönder</Button></Link></div>
+                <div className="flex gap-2">
+                  <Button
+                    variant="outline"
+                    className="flex-1 rounded-xl gap-2"
+                    type="button"
+                    disabled={favoriteBusy}
+                    onClick={() => void handleFavoriteClick()}
+                  >
+                    <Heart className={cn("h-4 w-4", favorited && "fill-primary text-primary")} />
+                    {favorited ? "Favorilerde" : "Favorile"}
+                  </Button>
+                  <Button
+                    variant="outline"
+                    className="flex-1 rounded-xl gap-2"
+                    type="button"
+                    disabled={chatBusy}
+                    onClick={() => void openSellerChat()}
+                  >
+                    {chatBusy ? <Loader2 className="h-4 w-4 animate-spin" /> : <MessageCircle className="h-4 w-4" />}
+                    Mesaj Gönder
+                  </Button>
+                </div>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="w-full text-muted-foreground gap-2"
+                  type="button"
+                  onClick={() => setReportOpen(true)}
+                >
+                  <Flag className="h-4 w-4" />
+                  İlanı Şikayet Et
+                </Button>
               </div>
             )}
             <div className="bg-card rounded-2xl border border-border overflow-hidden">
@@ -454,8 +637,16 @@ const ListingDetail = () => {
                       <User className="h-3.5 w-3.5" /> Satıcı Profili
                     </Button>
                   </Link>
-                  <Button variant="outline" size="sm" className="h-9 p-0 rounded-lg border-border bg-secondary/30 hover:bg-secondary/50">
-                    <MessageCircle className="h-4 w-4" />
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="h-9 p-0 rounded-lg border-border bg-secondary/30 hover:bg-secondary/50"
+                    type="button"
+                    disabled={chatBusy}
+                    onClick={() => void openSellerChat()}
+                    aria-label="Satıcıya mesaj gönder"
+                  >
+                    {chatBusy ? <Loader2 className="h-4 w-4 animate-spin" /> : <MessageCircle className="h-4 w-4" />}
                   </Button>
                   <Button variant="outline" size="sm" className="h-9 px-2 rounded-lg gap-2 text-[11px] font-bold border-border bg-secondary/30 hover:bg-secondary/50">
                     <Clock className="h-3.5 w-3.5" /> SMS
@@ -585,6 +776,50 @@ const ListingDetail = () => {
           </div>
         </div>
       </main>
+
+      <Dialog open={reportOpen} onOpenChange={setReportOpen}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>İlanı şikayet et</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 py-2">
+            <div className="space-y-2">
+              <Label htmlFor="report-reason">Sebep</Label>
+              <Select value={reportReason} onValueChange={setReportReason}>
+                <SelectTrigger id="report-reason">
+                  <SelectValue placeholder="Seçin" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="spam">Spam / yanıltıcı</SelectItem>
+                  <SelectItem value="prohibited">Yasaklı ürün</SelectItem>
+                  <SelectItem value="fraud">Dolandırıcılık şüphesi</SelectItem>
+                  <SelectItem value="copyright">Telif / marka ihlali</SelectItem>
+                  <SelectItem value="other">Diğer</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="report-details">Açıklama (isteğe bağlı)</Label>
+              <Textarea
+                id="report-details"
+                value={reportDetails}
+                onChange={(e) => setReportDetails(e.target.value)}
+                placeholder="Kısa açıklama yazabilirsiniz…"
+                rows={4}
+                className="resize-none"
+              />
+            </div>
+          </div>
+          <DialogFooter className="gap-2 sm:gap-0">
+            <Button variant="outline" type="button" onClick={() => setReportOpen(false)}>
+              Vazgeç
+            </Button>
+            <Button type="button" onClick={() => void submitReport()}>
+              Gönder
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       <Footer />
     </div>

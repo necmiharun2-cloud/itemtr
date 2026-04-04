@@ -1,6 +1,11 @@
 import { getCurrentUser, getUsers, type AppUser, type UserRole } from "@/lib/auth";
 import { safeJSONParse } from "@/lib/utils";
-import { supabase } from "./supabase";
+import {
+  getConversations as fetchSupabaseConversations,
+  sendMessage as sendSupabaseDM,
+  openListingConversation,
+  markAsRead as markSupabaseConversationRead,
+} from "./messaging-supabase";
 
 export type ConversationRole = UserRole | "seller" | "support";
 
@@ -46,6 +51,17 @@ export type SupportTicketView = {
 
 const CONVERSATIONS_KEY = "itemtr_conversations";
 export const MESSAGING_EVENT = "itemtr-messaging-updated";
+
+const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+
+export const isSupabaseConversationId = (id: string) => UUID_RE.test(String(id));
+
+export const isSupabaseProfileId = (id: string | null | undefined): id is string => Boolean(id && UUID_RE.test(String(id)));
+
+export const viewerIdentityIds = (user: AppUser | null | undefined): string[] => {
+  if (!user) return [];
+  return [...new Set([user.username, user.id].filter(Boolean))] as string[];
+};
 
 const nowIso = () => new Date().toISOString();
 const formatTime = (iso: string) => new Date(iso).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
@@ -167,38 +183,62 @@ export const getConversations = () => {
   return getConversationsRaw().sort((a, b) => (b.updatedAt || "").localeCompare(a.updatedAt || ""));
 };
 
-const currentViewerId = async () => {
-  const currentUser = await getCurrentUser();
-  return currentUser?.role === "admin" ? currentUser.username : currentUser?.username || "";
-};
-
 export const getVisibleConversations = async () => {
   const currentUser = await getCurrentUser();
   if (!currentUser) return [];
 
-  const viewerId = currentUser.username;
-  const conversations = getConversations();
+  const viewerIds = viewerIdentityIds(currentUser);
+  const localAll = getConversations();
 
   if (currentUser.role === "admin") {
-    return conversations.filter((conversation) => conversation.type === "support");
+    return localAll.filter((conversation) => conversation.type === "support");
   }
 
-  return conversations.filter((conversation) => conversation.participants.some((participant) => participant.id === viewerId));
+  const localFiltered = localAll.filter((conversation) =>
+    conversation.participants.some((participant) => viewerIds.includes(participant.id)),
+  );
+
+  let remote: Conversation[] = [];
+  if (isSupabaseProfileId(currentUser.id)) {
+    try {
+      remote = await fetchSupabaseConversations();
+    } catch (e) {
+      console.warn("[Messaging] Supabase sohbetler yüklenemedi:", e);
+    }
+  }
+
+  const seen = new Set<string>();
+  const merged: Conversation[] = [];
+  for (const c of [...remote, ...localFiltered]) {
+    if (seen.has(c.id)) continue;
+    seen.add(c.id);
+    merged.push(c);
+  }
+
+  return merged.sort((a, b) => (b.updatedAt || "").localeCompare(a.updatedAt || ""));
 };
 
-export const getConversationCounterpart = (conversation: Conversation, viewerId: string) => {
+export const getConversationCounterpart = (conversation: Conversation, viewerIds: string[]) => {
   return (
-    conversation.participants.find((participant) => participant.id !== viewerId) ||
+    conversation.participants.find((participant) => !viewerIds.includes(participant.id)) ||
     conversation.participants[0]
   );
 };
 
-export const markConversationRead = async (conversationId: string, viewerId?: string) => {
-  const id = viewerId || await currentViewerId();
-  if (!id) return;
+export const markConversationRead = async (conversationId: string, viewerIds?: string[]) => {
+  const user = await getCurrentUser();
+  const ids = viewerIds?.length ? viewerIds : viewerIdentityIds(user);
+  if (!ids.length) return;
+
+  if (isSupabaseConversationId(conversationId)) {
+    await markSupabaseConversationRead(conversationId);
+    emitMessagingChange();
+    return;
+  }
+
   const next = getConversations().map((conversation) =>
     conversation.id === conversationId
-      ? { ...conversation, unreadBy: (conversation.unreadBy || []).filter((uid) => uid !== id) }
+      ? { ...conversation, unreadBy: (conversation.unreadBy || []).filter((uid) => !ids.includes(uid)) }
       : conversation,
   );
   saveConversations(next);
@@ -303,188 +343,110 @@ export const getAllSupportTickets = (): SupportTicketView[] => {
     });
 };
 
-export const getConversationSummary = (conversation: Conversation, viewerId: string) => {
-  const counterpart = getConversationCounterpart(conversation, viewerId);
+export const getConversationSummary = (conversation: Conversation, viewerIds: string[]) => {
+  const counterpart = getConversationCounterpart(conversation, viewerIds);
   const lastMessage = conversation.messages[conversation.messages.length - 1];
+  const unread = (conversation.unreadBy || []).some((uid) => viewerIds.includes(uid)) ? 1 : 0;
   return {
     counterpart,
     title: conversation.type === "support" ? `${conversation.subject}` : counterpart?.name || conversation.subject,
     subtitle: conversation.type === "support" ? `${counterpart?.name || "Destek"} • ${conversation.category || "Genel"}` : conversation.subject,
     lastMessage: lastMessage?.text || "Henüz mesaj yok.",
     time: lastMessage ? formatTime(lastMessage.createdAt) : formatTime(conversation.updatedAt),
-    unread: conversation.unreadBy.includes(viewerId) ? 1 : 0,
+    unread,
   };
 };
 
-// ============================================
-// SUPABASE MESSAGING FUNCTIONS
-// ============================================
+const listingConversationSlug = (buyer: AppUser, sellerUsername: string, listingId: string) =>
+  `direct-${buyer.username}-${sellerUsername}-${listingId}`.replace(/[^a-zA-Z0-9-]/g, "-").slice(0, 120);
 
-// Convert Supabase conversation to Conversation
-const convertConversation = (conv: any, messages: any[], profile1: any, profile2: any): Conversation => {
-  const participants: ConversationParticipant[] = [
-    { id: conv.participant_1, name: profile1?.name || 'Unknown', role: profile1?.role || 'user', avatar: profile1?.avatar },
-    { id: conv.participant_2, name: profile2?.name || 'Unknown', role: profile2?.role || 'user', avatar: profile2?.avatar },
-  ];
+export const createOrOpenLocalListingConversation = (
+  buyer: AppUser,
+  listingId: string,
+  listingTitle: string,
+  sellerUsername: string,
+  sellerAvatarUrl?: string,
+): string => {
+  seedMessaging();
+  const convId = listingConversationSlug(buyer, sellerUsername, listingId);
+  const existing = getConversations().find((c) => c.id === convId);
+  if (existing) return convId;
 
-  return {
-    id: conv.id,
-    type: 'direct',
-    subject: conv.listing_id ? `İlan: ${conv.listing_id}` : 'Mesajlaşma',
-    participants,
-    messages: messages.map(m => ({
-      id: m.id,
-      senderId: m.sender_id,
-      senderName: m.sender_id === conv.participant_1 ? profile1?.name : profile2?.name,
-      senderRole: m.sender_id === conv.participant_1 ? profile1?.role : profile2?.role,
-      text: m.content,
-      createdAt: m.created_at,
-    })),
-    unreadBy: conv.unread_by || [],
-    createdAt: conv.created_at,
-    updatedAt: conv.last_message_at || conv.created_at,
+  const sellerParticipant: ConversationParticipant = {
+    id: sellerUsername,
+    name: sellerUsername,
+    role: "seller",
+    avatar: sellerAvatarUrl || sellerAvatar(sellerUsername),
   };
+  const createdAt = nowIso();
+  const intro = `Merhaba, "${listingTitle}" ilanı hakkında yazıyorum.`;
+  const conversation: Conversation = {
+    id: convId,
+    type: "direct",
+    subject: `İlan: ${listingTitle}`.slice(0, 200),
+    participants: [createUserParticipant(buyer), sellerParticipant],
+    messages: [
+      {
+        id: `msg-${Date.now()}`,
+        senderId: buyer.username,
+        senderName: buyer.name,
+        senderRole: buyer.role,
+        text: intro,
+        createdAt,
+      },
+    ],
+    unreadBy: [sellerUsername],
+    createdAt,
+    updatedAt: createdAt,
+  };
+  saveConversations([conversation, ...getConversations()]);
+  return convId;
 };
 
-// Get user's conversations from Supabase
-export const getConversationsFromSupabase = async (userId: string): Promise<Conversation[]> => {
-  try {
-    const { data: conversations, error } = await supabase
-      .from('conversations')
-      .select(`*, participant1:participant_1(*), participant2:participant_2(*)`)
-      .or(`participant_1.eq.${userId},participant_2.eq.${userId}`)
-      .order('last_message_at', { ascending: false });
+export const startChatFromListing = async (opts: {
+  listingId: string;
+  listingTitle: string;
+  sellerUsername: string;
+  sellerProfileId?: string | null;
+  sellerAvatarUrl?: string;
+}): Promise<{ ok: boolean; conversationId?: string; reason?: "login" | "self" | "fail" }> => {
+  const user = await getCurrentUser();
+  if (!user) return { ok: false, reason: "login" };
+  if (user.username === opts.sellerUsername) return { ok: false, reason: "self" };
+  if (opts.sellerProfileId && user.id === opts.sellerProfileId) return { ok: false, reason: "self" };
 
-    if (error) {
-      console.error('[Messaging] Error fetching conversations:', error);
-      return [];
+  const canSupabase =
+    isSupabaseProfileId(user.id) &&
+    isSupabaseProfileId(opts.sellerProfileId) &&
+    isSupabaseProfileId(opts.listingId);
+
+  if (canSupabase) {
+    const convId = await openListingConversation(opts.sellerProfileId!, opts.listingId, opts.listingTitle);
+    if (convId) {
+      emitMessagingChange();
+      return { ok: true, conversationId: convId };
     }
-
-    // Fetch messages for each conversation
-    const result: Conversation[] = [];
-    for (const conv of conversations || []) {
-      const { data: messages } = await supabase
-        .from('messages')
-        .select('*')
-        .eq('conversation_id', conv.id)
-        .order('created_at', { ascending: true });
-
-      result.push(convertConversation(conv, messages || [], conv.participant1, conv.participant2));
-    }
-
-    return result;
-  } catch (error) {
-    console.error('[Messaging] Error:', error);
-    return [];
+    return { ok: false, reason: "fail" };
   }
+
+  const convId = createOrOpenLocalListingConversation(
+    user,
+    opts.listingId,
+    opts.listingTitle,
+    opts.sellerUsername,
+    opts.sellerAvatarUrl,
+  );
+  return { ok: true, conversationId: convId };
 };
 
-// Create conversation in Supabase
-export const createConversationInSupabase = async (participant1Id: string, participant2Id: string, listingId?: string) => {
-  try {
-    const { data, error } = await supabase
-      .from('conversations')
-      .insert({
-        participant_1: participant1Id,
-        participant_2: participant2Id,
-        listing_id: listingId,
-        unread_by: [],
-      })
-      .select()
-      .single();
-
-    if (error) {
-      console.error('[Messaging] Error creating conversation:', error);
-      return { ok: false, error: error.message };
-    }
-
-    return { ok: true, conversation: data };
-  } catch (error) {
-    console.error('[Messaging] Error:', error);
-    return { ok: false, error: 'Bir hata oluştu' };
+export const sendChatMessage = async (conversationId: string, localSender: ConversationParticipant, text: string) => {
+  const trimmed = text.trim();
+  if (!trimmed) return false;
+  if (isSupabaseConversationId(conversationId)) {
+    const ok = await sendSupabaseDM(conversationId, trimmed);
+    emitMessagingChange();
+    return ok;
   }
-};
-
-// Send message in Supabase
-export const sendMessageInSupabase = async (conversationId: string, senderId: string, content: string) => {
-  try {
-    // Insert message
-    const { data: message, error } = await supabase
-      .from('messages')
-      .insert({
-        conversation_id: conversationId,
-        sender_id: senderId,
-        content,
-      })
-      .select()
-      .single();
-
-    if (error) {
-      console.error('[Messaging] Error sending message:', error);
-      return { ok: false, error: error.message };
-    }
-
-    // Update conversation last_message
-    await supabase
-      .from('conversations')
-      .update({
-        last_message: content,
-        last_message_at: new Date().toISOString(),
-      })
-      .eq('id', conversationId);
-
-    return { ok: true, message };
-  } catch (error) {
-    console.error('[Messaging] Error:', error);
-    return { ok: false, error: 'Bir hata oluştu' };
-  }
-};
-
-// Mark messages as read in Supabase
-export const markMessagesAsReadInSupabase = async (conversationId: string, userId: string) => {
-  try {
-    const { error } = await supabase
-      .from('messages')
-      .update({ is_read: true })
-      .eq('conversation_id', conversationId)
-      .eq('sender_id', userId)
-      .eq('is_read', false);
-
-    if (error) {
-      console.error('[Messaging] Error marking messages as read:', error);
-      return { ok: false, error: error.message };
-    }
-
-    return { ok: true };
-  } catch (error) {
-    console.error('[Messaging] Error:', error);
-    return { ok: false, error: 'Bir hata oluştu' };
-  }
-};
-
-// Get unread message count for user
-export const getUnreadMessageCountFromSupabase = async (userId: string): Promise<number> => {
-  try {
-    const { data: messages, error } = await supabase
-      .from('messages')
-      .select(`*, conversations!inner(participant_1, participant_2)`)
-      .eq('is_read', false)
-      .neq('sender_id', userId);
-
-    if (error) {
-      console.error('[Messaging] Error fetching unread count:', error);
-      return 0;
-    }
-
-    // Filter messages where user is a participant
-    const count = messages?.filter(m => 
-      m.conversations?.participant_1 === userId || 
-      m.conversations?.participant_2 === userId
-    ).length || 0;
-
-    return count;
-  } catch (error) {
-    console.error('[Messaging] Error:', error);
-    return 0;
-  }
+  sendConversationMessage(conversationId, localSender, trimmed);
+  return true;
 };
