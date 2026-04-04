@@ -14,14 +14,14 @@ let kocucePvpCache: KocuceItem[] = (() => {
   return getCombinedPvpPool();
 })();
 
-const BOT_IMAGE_CACHE_KEY = "itemtr_bot_image_cache_v1";
+const BOT_IMAGE_CACHE_KEY = "itemtr_bot_image_cache_v5"; // Cache'i tazelemek için versiyonu artırıyoruz
 const BOT_STATS_KEY = "itemtr_bot_stats";
 const BOT_HISTORY_KEY = "itemtr_bot_listings";
 const BOT_USED_NAMES_KEY = "itemtr_bot_used_names";
 const BOT_BACKUP_KEY = "itemtr_bot_listings_backup";
 const BOT_BULK_OVERRIDE_KEY = "itemtr_bot_bulk_override_url";
 const BOT_IMAGE_VERSION_KEY = "itemtr_bot_image_version";
-const CURRENT_IMAGE_VERSION = "hd-v4";
+const CURRENT_IMAGE_VERSION = "hd-v5-tr";
 export const BOT_LOGO_IMAGE = "/itemtr-bot-logo.svg";
 
 type BotImageCache = Record<string, string>;
@@ -77,23 +77,23 @@ const watermarkImage = async (imageUrl: string, text: string): Promise<string> =
       // Draw the original image
       ctx.drawImage(img, 0, 0);
 
-      // Add a stylized translucent watermark
-      const fontSize = Math.floor(canvas.height * 0.07);
+      // Stilize edilmiş filigran ekleme
+      const fontSize = Math.floor(canvas.height * 0.08);
       ctx.font = `italic bold ${fontSize}px "Inter", sans-serif`;
       ctx.textAlign = "center";
       ctx.textBaseline = "middle";
 
-      // Draw glassmorphism style background for text (More prominent)
-      const textMetrics = ctx.measureText(text.toUpperCase());
-      const paddingX = 40;
-      const paddingY = 20;
+      // Metin için cam efekti (glassmorphism) arka planı
+      const displayText = text.toUpperCase();
+      const textMetrics = ctx.measureText(displayText);
+      const paddingX = 50;
+      const paddingY = 25;
       const rectWidth = textMetrics.width + paddingX * 2;
       const rectHeight = fontSize + paddingY * 2;
       
-      // Rounded rectangle for the watermark background
       const rx = (canvas.width - rectWidth) / 2;
       const ry = (canvas.height - rectHeight) / 2;
-      const radius = 15;
+      const radius = 20;
       
       ctx.beginPath();
       ctx.moveTo(rx + radius, ry);
@@ -107,30 +107,31 @@ const watermarkImage = async (imageUrl: string, text: string): Promise<string> =
       ctx.quadraticCurveTo(rx, ry, rx + radius, ry);
       ctx.closePath();
       
-      ctx.fillStyle = "rgba(0, 0, 0, 0.7)"; // Darker for better contrast
+      // Çok katmanlı arka plan (Cam efekti için)
+      ctx.fillStyle = "rgba(0, 0, 0, 0.75)"; 
       ctx.fill();
       
-      // Border for the glass effect
-      ctx.strokeStyle = "rgba(255, 255, 255, 0.2)";
-      ctx.lineWidth = 2;
+      // Işıltılı kenarlık
+      ctx.strokeStyle = "rgba(255, 255, 255, 0.3)";
+      ctx.lineWidth = 3;
       ctx.stroke();
 
-      // Draw text with strong shadow for legibility
+      // Metni gölgeli ve parlak sarı olarak çiz (ItemTR Marka Rengi)
       ctx.shadowColor = "rgba(0, 0, 0, 1)";
-      ctx.shadowBlur = 10;
-      ctx.fillStyle = "#FACC15"; // Brand yellow color
-      ctx.fillText(text.toUpperCase(), canvas.width / 2, canvas.height / 2 - 5);
+      ctx.shadowBlur = 15;
+      ctx.fillStyle = "#FACC15"; 
+      ctx.fillText(displayText, canvas.width / 2, canvas.height / 2 - 10);
 
-      // Add "ITEM-TR" secondary watermark at bottom
+      // İkincil "YAPAY ZEKA" ibaresi
       ctx.shadowBlur = 0;
       ctx.font = `bold ${Math.floor(fontSize * 0.35)}px sans-serif`;
-      ctx.fillStyle = "rgba(255, 255, 255, 0.8)";
-      ctx.fillText("ITEMTR.COM - AI GENERATED", canvas.width / 2, (canvas.height + rectHeight) / 2 - 25);
+      ctx.fillStyle = "rgba(255, 255, 255, 0.9)";
+      ctx.fillText("ITEMTR.COM - HD YAPAY ZEKA", canvas.width / 2, (canvas.height + rectHeight) / 2 - 35);
 
-      resolve(canvas.toDataURL("image/jpeg", 0.85));
+      resolve(canvas.toDataURL("image/jpeg", 0.9));
     };
     img.onerror = () => {
-      console.warn("AI Image load failed, using fallback:", imageUrl);
+      console.warn("Resim yüklenemedi, orjinal URL kullanılıyor:", imageUrl);
       resolve(imageUrl);
     };
     img.src = imageUrl;
@@ -140,14 +141,16 @@ const watermarkImage = async (imageUrl: string, text: string): Promise<string> =
 const getHdImageForListing = async (category: string, title: string): Promise<string> => {
   const query = getSearchQueryForListing(category, title);
   const cache = getBotImageCache();
-  const cacheKey = `${query.toLowerCase()}_v6`; // New versioned cache key
+  const cacheKey = `${query.toLowerCase()}_v8_final`; 
   
   if (cache[cacheKey]) return cache[cacheKey];
 
-  // Simplified prompt to avoid filtering and 403s
+  // Unsplash gaming koleksiyonundan yüksek kaliteli ve güvenilir (CORS uyumlu) resimler
   const cleanTitle = title.replace(/[^\w\s]/gi, '');
-  const prompt = encodeURIComponent(`${category} ${cleanTitle} game wallpaper landscape`);
-  const imageUrl = `https://image.pollinations.ai/prompt/${prompt}?width=1024&height=768&nologo=true&seed=${Math.floor(Math.random() * 1000000)}`;
+  const prompt = encodeURIComponent(`${category} ${cleanTitle} cinematic gaming art 4k`);
+  
+  // Güvenilirlik için Unsplash Source kullanıyoruz (Pollinations 403 hataları verebiliyor)
+  const imageUrl = `https://source.unsplash.com/featured/1280x720?${prompt}&sig=${Math.floor(Math.random() * 1000000)}`;
   
   try {
     const watermarkedUrl = await watermarkImage(imageUrl, category);
@@ -155,7 +158,7 @@ const getHdImageForListing = async (category: string, title: string): Promise<st
     setBotImageCache(cache);
     return watermarkedUrl;
   } catch (error) {
-    console.error("Watermarking failed:", error);
+    console.error("Filigranlama işlemi başarısız, orijinal resim kullanılıyor:", error);
     return imageUrl;
   }
 };

@@ -18,7 +18,7 @@ const BotManager = () => {
             await generateBotListing();
           }, i * 1000);
         }
-        console.log(`[BotManager] Initialized with ${initialCount} starter listings`);
+        console.log(`[BotManager] ${initialCount} adet başlangıç ilanı ile başlatıldı.`);
       }
     };
 
@@ -39,7 +39,7 @@ const BotManager = () => {
         const threshold = historyCount < 20 ? 0.85 : 0.4;
         
         if (Math.random() < threshold) {
-          console.log(`[BotManager] Auto-generating listing (${new Date().toLocaleTimeString()})`);
+          console.log(`[BotManager] Otomatik ilan oluşturuluyor (${new Date().toLocaleTimeString()})...`);
           await generateBotListing();
         }
       }
