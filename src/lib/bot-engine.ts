@@ -1,7 +1,7 @@
 import { type ListingSection } from "./marketplace";
-import { sanitizeContent, getCombinedPvpPool, type KocuceItem } from "./rss-service";
+import { getCombinedPvpPool, type KocuceItem } from "./rss-service";
 import { ListingVisualDirector } from "./visual-director";
-import { fetchItemSatisListings, getRandomItemSatisListing, type ItemSatisListing } from "./itemsatis-scraper";
+import { getRandomItemSatisListingForBot, type ItemSatisListing } from "./itemsatis-scraper";
 import { gameLabelForCanonicalCategory, normalizeBotCategoryFilter } from "./category-normalize";
 
 let kocucePvpCache: KocuceItem[] = (() => {
@@ -302,7 +302,57 @@ const setUsedBotNames = (names: string[]) => localStorage.setItem(BOT_USED_NAMES
 const reserveUniqueBotName = () => { const used = getUsedBotNames(); const remaining = BOT_NAME_POOL.filter((name) => !used.includes(name)); if (remaining.length === 0) { const freshPick = pickRandom(BOT_NAME_POOL); setUsedBotNames([freshPick]); return freshPick; } const nextName = pickRandom(remaining); setUsedBotNames([...used, nextName]); return nextName; };
 
 export const getBotNamePoolStats = (): BotNamePoolStats => { const usedNames = getUsedBotNames().length; return { totalNames: BOT_NAME_POOL.length, usedNames, remainingNames: Math.max(BOT_NAME_POOL.length - usedNames, 0) }; };
-export const getBotStats = (): BotStats => { const today = new Date().toLocaleDateString(); const stats = safeJSONParse<BotStats | null>(localStorage.getItem(BOT_STATS_KEY), null); if (!stats) return { totalListings: 148, todayListings: 24, lastUpdate: today }; if (stats.lastUpdate !== today) { const refreshed = { ...stats, todayListings: 0, lastUpdate: today }; localStorage.setItem(BOT_STATS_KEY, JSON.stringify(refreshed)); return refreshed; } return stats; };
+export const getBotStats = (): BotStats => {
+  const today = new Date().toLocaleDateString("tr-TR");
+  let stats = safeJSONParse<BotStats | null>(localStorage.getItem(BOT_STATS_KEY), null);
+  if (!stats) {
+    const history = getBotHistory();
+    const todayCount = history.filter((l) => new Date(l.createdTimestamp).toLocaleDateString("tr-TR") === today).length;
+    stats = { totalListings: history.length, todayListings: todayCount, lastUpdate: today };
+    localStorage.setItem(BOT_STATS_KEY, JSON.stringify(stats));
+    return stats;
+  }
+  if (stats.lastUpdate !== today) {
+    const refreshed = { ...stats, todayListings: 0, lastUpdate: today };
+    localStorage.setItem(BOT_STATS_KEY, JSON.stringify(refreshed));
+    return refreshed;
+  }
+  return stats;
+};
+
+const recordBotListingCreated = () => {
+  const today = new Date().toLocaleDateString("tr-TR");
+  const prev = safeJSONParse<BotStats | null>(localStorage.getItem(BOT_STATS_KEY), null);
+  const totalListings = (prev?.totalListings ?? 0) + 1;
+  const todayListings = prev?.lastUpdate === today ? (prev.todayListings ?? 0) + 1 : 1;
+  const next: BotStats = { totalListings, todayListings, lastUpdate: today };
+  localStorage.setItem(BOT_STATS_KEY, JSON.stringify(next));
+};
+
+const applyAdminBotDecorations = (listing: BotListing) => {
+  const autoTagsOn = localStorage.getItem("itemtr_bot_auto_tags") !== "false";
+  const rawTags = (localStorage.getItem("itemtr_bot_tags") || "")
+    .split(/[,\n]/)
+    .map((t) => t.trim())
+    .filter(Boolean);
+  if (autoTagsOn && rawTags.length) {
+    listing.tags = [...new Set([...rawTags, ...(listing.tags || [])])].slice(0, 12);
+  }
+  const autoReviewsOn = localStorage.getItem("itemtr_bot_auto_reviews") !== "false";
+  if (autoReviewsOn) {
+    const reviewer = pickRandom(REVIEWER_POOL);
+    listing.reviews = [
+      {
+        id: `rev-${listing.id}-${Date.now()}`,
+        user: reviewer,
+        avatar: `https://ui-avatars.com/api/?name=${encodeURIComponent(reviewer)}&background=1e293b&color=fff`,
+        rating: 4 + Math.floor(Math.random() * 2),
+        comment: "Hızlı iletişim ve güvenilir teslimat.",
+        date: new Date().toLocaleDateString("tr-TR"),
+      },
+    ];
+  }
+};
 
 export const getBotHistory = (): BotListing[] => {
   const storedVersion = localStorage.getItem(BOT_IMAGE_VERSION_KEY);
@@ -321,8 +371,16 @@ export const isBotListingLocked = (listingId?: string | number | null) => { if (
 export const generateBotListing = async (): Promise<BotListing> => { 
   const selectedCategory = normalizeBotCategoryFilter(localStorage.getItem("itemtr_bot_category") || "all");
   const customImg = (localStorage.getItem("itemtr_bot_custom_image") || "").trim();
+  const minP = Number(localStorage.getItem("itemtr_bot_min_price") || "10");
+  const maxP = Number(localStorage.getItem("itemtr_bot_max_price") || "2000");
+  const safeMin = Number.isFinite(minP) ? minP : 10;
+  const safeMax = Number.isFinite(maxP) ? maxP : 2000;
 
-  const itemsatisListing = await getRandomItemSatisListing(selectedCategory === "all" ? undefined : selectedCategory);
+  const itemsatisListing = await getRandomItemSatisListingForBot(
+    selectedCategory === "all" ? undefined : selectedCategory,
+    Math.min(safeMin, safeMax),
+    Math.max(safeMin, safeMax),
+  );
 
   if (!itemsatisListing) {
     return await generateFallbackBotListing(selectedCategory);
@@ -377,9 +435,12 @@ export const generateBotListing = async (): Promise<BotListing> => {
     newListing.image = curatedFallbackForCategory(newListing.category, newListing.title);
   }
 
+  applyAdminBotDecorations(newListing);
+
   const history = getBotHistory();
   history.unshift(newListing); 
   localStorage.setItem(BOT_HISTORY_KEY, JSON.stringify(history.slice(0, 500))); 
+  recordBotListingCreated();
   window.dispatchEvent(new CustomEvent("itemtr-marketplace-updated")); 
   return newListing; 
 };
@@ -452,9 +513,12 @@ const generateFallbackBotListing = async (selectedCategory: string): Promise<Bot
 
   if (!newListing.image?.trim()) newListing.image = fallbackStockImage;
 
+  applyAdminBotDecorations(newListing);
+
   const history = getBotHistory();
   history.unshift(newListing); 
   localStorage.setItem(BOT_HISTORY_KEY, JSON.stringify(history.slice(0, 500))); 
+  recordBotListingCreated();
   window.dispatchEvent(new CustomEvent("itemtr-marketplace-updated")); 
   return newListing; 
 };
@@ -487,18 +551,3 @@ export const undoBotImageUpdate = () => {
   return true;
 };
 
-const initializeBotAutomation = () => {
-  if (typeof window === "undefined") return;
-  const runAutomation = async () => {
-    if (localStorage.getItem("itemtr_bot_enabled") === "false") return;
-    const intervalSec = Number(localStorage.getItem("itemtr_bot_interval") || "45");
-    const lastRun = Number(localStorage.getItem("itemtr_bot_last_run") || "0");
-    if (Date.now() - lastRun >= intervalSec * 1000) {
-      localStorage.setItem("itemtr_bot_last_run", String(Date.now()));
-      await generateBotListing();
-    }
-  };
-  setInterval(runAutomation, 10000);
-};
-
-if (typeof window !== "undefined" && !import.meta.env.VITEST) initializeBotAutomation();

@@ -395,6 +395,56 @@ export const fetchItemSatisListings = async (category?: string): Promise<ItemSat
   }
 };
 
+/** Tanıtım / fiyat yok sayılan ilanlar için null döner (her zaman kabul edilir). */
+export const numericPriceTry = (price: string): number | null => {
+  const s = String(price || "").toLowerCase();
+  if (s.includes("tanıtım") || s.includes("tanitim") || s.includes("promo")) return null;
+  const digits = String(price).replace(/[^\d]/g, "");
+  if (!digits) return null;
+  const n = Number(digits);
+  return Number.isFinite(n) ? n : null;
+};
+
+const priceInRange = (item: ItemSatisListing, minPrice: number, maxPrice: number): boolean => {
+  const n = numericPriceTry(item.price);
+  if (n === null) return true;
+  return n >= minPrice && n <= maxPrice;
+};
+
+/**
+ * Bot için: kategori + min/max fiyat (₺) filtresi, mümkünse yalnız uygun havuzdan seçer.
+ */
+export const getRandomItemSatisListingForBot = async (
+  category: string | undefined,
+  minPrice: number,
+  maxPrice: number,
+): Promise<ItemSatisListing | null> => {
+  const listings = await fetchItemSatisListings(category);
+  if (listings.length === 0) return null;
+
+  const pickFrom = (pool: ItemSatisListing[]) => {
+    if (pool.length === 0) return null;
+    const selected = pool[Math.floor(Math.random() * pool.length)];
+    addUsedId(selected.id);
+    return selected;
+  };
+
+  let available = getAvailableListings(listings).filter((item) => priceInRange(item, minPrice, maxPrice));
+  if (available.length === 0) {
+    resetUsedIds();
+    available = listings.filter((item) => priceInRange(item, minPrice, maxPrice));
+  }
+  let chosen = pickFrom(available);
+  if (chosen) return chosen;
+
+  available = getAvailableListings(listings);
+  if (available.length === 0) {
+    resetUsedIds();
+    available = listings;
+  }
+  return pickFrom(available);
+};
+
 /**
  * Gets random listing from itemsatis pool - prevents duplicates
  */

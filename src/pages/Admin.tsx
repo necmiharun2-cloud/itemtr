@@ -296,11 +296,16 @@ const Admin = () => {
     toast.success("Bot ayarları kaydedildi.");
   };
 
-  const createBotListingNow = () => {
-    generateBotListing();
-    setBotStats(getBotStats());
-    setBotNamePoolStats(getBotNamePoolStats());
-    toast.success("Bot ilanı üretildi.");
+  const createBotListingNow = async () => {
+    try {
+      await generateBotListing();
+      setBotStats(getBotStats());
+      setBotNamePoolStats(getBotNamePoolStats());
+      toast.success("Bot ilanı üretildi.");
+    } catch (e) {
+      console.error("[Admin] createBotListingNow", e);
+      toast.error("Bot ilanı oluşturulamadı. Konsolu kontrol edin.");
+    }
   };
 
   const filteredUsers = useMemo(() => {

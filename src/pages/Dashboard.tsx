@@ -84,7 +84,7 @@ type Ticket = {
 };
 
 type Listing = {
-  id: number;
+  id: string | number;
   title: string;
   price: string;
   views: number;
@@ -275,10 +275,10 @@ const Dashboard = () => {
         .eq('status', 'active');
         
       if (!listingsError && listingsData) {
-        const formattedListings = listingsData.map((listing: any, index: number) => ({
-          id: index + 1,
+        const formattedListings = listingsData.map((listing: any) => ({
+          id: listing.id,
           title: listing.title,
-          price: `₺${Number(listing.price).toFixed(2)}`,
+          price: Number(listing.price).toLocaleString("tr-TR", { minimumFractionDigits: 2, maximumFractionDigits: 2 }),
           views: listing.views || 0,
           stock: listing.stock || 1,
           status: "Aktif" as const,
@@ -436,8 +436,18 @@ const Dashboard = () => {
     toast.success("Para çekme talebi oluşturuldu.");
   };
 
-  const deleteListing = (id: number) => {
-    setActiveListings((prev) => prev.filter((item) => item.id !== id));
+  const deleteListing = async (id: string | number) => {
+    const idStr = String(id);
+    const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(idStr);
+    if (isUuid) {
+      const { error } = await supabase.from("listings").delete().eq("id", idStr);
+      if (error) {
+        console.error("[Dashboard] deleteListing", error);
+        toast.error("İlan silinemedi. Tekrar deneyin.");
+        return;
+      }
+    }
+    setActiveListings((prev) => prev.filter((item) => String(item.id) !== idStr));
     toast.success("İlan kaldırıldı.");
   };
 
@@ -459,7 +469,18 @@ const Dashboard = () => {
       category: ticketForm.type,
       message: ticketForm.message,
     });
-    
+
+    const refreshed = await getSupportTicketsForCurrentUser();
+    setSupportTickets(
+      refreshed.map((ticket) => ({
+        id: ticket.id,
+        subject: ticket.subject,
+        status: ticket.status,
+        date: ticket.date,
+        type: ticket.category,
+      })),
+    );
+
     setTicketForm({ subject: "", type: "Genel", message: "" });
     toast.success("Destek talebi oluşturuldu.");
   };
@@ -776,7 +797,16 @@ const Dashboard = () => {
                     </TableBody>
                   </Table>
                   <div className="p-8 border-t border-white/5">
-                    <Button className="w-full h-14 bg-primary text-white font-black italic tracking-widest uppercase rounded-2xl shadow-2xl shadow-primary/20">ALIŞVERİŞİ TAMAMLA</Button>
+                    <Button
+                      type="button"
+                      className="w-full h-14 bg-primary text-white font-black italic tracking-widest uppercase rounded-2xl shadow-2xl shadow-primary/20"
+                      onClick={() => {
+                        toast.info("Sepet ödemesi için ürünleri ilan sayfasından satın alabilirsiniz.");
+                        navigate("/category");
+                      }}
+                    >
+                      ALIŞVERİŞİ TAMAMLA
+                    </Button>
                   </div>
                 </CardContent>
               </Card>
@@ -809,7 +839,7 @@ const Dashboard = () => {
                               </Badge>
                             </TableCell>
                             <TableCell className="px-8 text-right">
-                              <Button variant="outline" size="sm" className="rounded-xl border-white/10 bg-white/5 text-white text-[9px] font-black uppercase" onClick={() => navigate(`/messages?chat=${encodeURIComponent(ticket.id)}`)}>Çatı Gör</Button>
+                              <Button variant="outline" size="sm" className="rounded-xl border-white/10 bg-white/5 text-white text-[9px] font-black uppercase" onClick={() => navigate(`/messages?chat=${encodeURIComponent(ticket.id)}`)}>Sohbeti Aç</Button>
                             </TableCell>
                           </TableRow>
                         ))}
@@ -826,6 +856,19 @@ const Dashboard = () => {
                     <div className="space-y-2">
                       <Label className="text-[10px] font-black uppercase tracking-widest">Konu</Label>
                       <Input value={ticketForm.subject} onChange={(e) => setTicketForm({ ...ticketForm, subject: e.target.value })} className="bg-secondary h-12" />
+                    </div>
+                    <div className="space-y-2">
+                      <Label className="text-[10px] font-black uppercase tracking-widest">Kategori</Label>
+                      <select
+                        value={ticketForm.type}
+                        onChange={(e) => setTicketForm({ ...ticketForm, type: e.target.value })}
+                        className="flex h-12 w-full rounded-md border border-input bg-secondary px-3 py-2 text-sm text-foreground"
+                      >
+                        <option value="Genel">Genel</option>
+                        <option value="Finans">Finans / Bakiye</option>
+                        <option value="İlan">İlan</option>
+                        <option value="Hesap">Hesap / Güvenlik</option>
+                      </select>
                     </div>
                     <div className="space-y-2">
                       <Label className="text-[10px] font-black uppercase tracking-widest">Açıklama</Label>
@@ -903,9 +946,9 @@ const Dashboard = () => {
                           <TableCell className="px-8">
                             <div className="text-xs font-black text-white italic">{listing.title}</div>
                             <div className="flex items-center gap-2 mt-1 opacity-0 group-hover:opacity-100 transition-all">
-                              <button onClick={() => navigate(`/product/${listing.id}`)} className="text-[9px] font-black text-primary hover:underline">GÖRÜNTÜLE</button>
-                              <button onClick={() => navigate(`/edit-listing/${listing.id}`)} className="text-[9px] font-black text-blue-400 hover:underline">DÜZENLE</button>
-                              <button onClick={() => deleteListing(listing.id)} className="text-[9px] font-black text-red-500 hover:underline">KALDIR</button>
+                              <button type="button" onClick={() => navigate(`/listing/${listing.id}`)} className="text-[9px] font-black text-primary hover:underline">GÖRÜNTÜLE</button>
+                              <button type="button" onClick={() => navigate(`/edit-listing/${listing.id}`)} className="text-[9px] font-black text-blue-400 hover:underline">DÜZENLE</button>
+                              <button type="button" onClick={() => void deleteListing(listing.id)} className="text-[9px] font-black text-red-500 hover:underline">KALDIR</button>
                             </div>
                           </TableCell>
                           <TableCell>

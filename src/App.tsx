@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useLayoutEffect, useState } from "react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Navigate, Route, Routes, useLocation } from "react-router-dom";
 import { Toaster as Sonner } from "@/components/ui/sonner";
@@ -90,6 +90,14 @@ const ProtectedRoute = ({ children, adminOnly = false }: { children: JSX.Element
   return children;
 };
 
+const ScrollToTop = () => {
+  const { pathname } = useLocation();
+  useLayoutEffect(() => {
+    window.scrollTo(0, 0);
+  }, [pathname]);
+  return null;
+};
+
 const GuestOnlyRoute = ({ children }: { children: JSX.Element }) => {
   const location = useLocation();
   const [user, setUser] = useState<any>(null);
@@ -120,6 +128,7 @@ const App = () => (
         <Sonner />
         <FloatingSupport />
         <BrowserRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
+          <ScrollToTop />
           <Routes>
             <Route path="/" element={<Index />} />
             <Route path="/listing/:id" element={<ListingDetail />} />
