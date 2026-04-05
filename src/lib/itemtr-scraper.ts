@@ -1,6 +1,6 @@
 /**
  * Bot ilan havuzu: kategori bazlı mock ilanlar + normalize edilmiş filtreleme.
- * (Tarayıcıdan doğrudan ItemSatis scrape CORS nedeniyle kullanılmıyor.)
+ * (Tarayıcıdan doğrudan İtemTR.com scrape CORS nedeniyle kullanılmıyor.)
  */
 
 import { normalizeBotCategoryFilter } from "./category-normalize";
@@ -49,9 +49,7 @@ const CATEGORY_IMAGES: Record<string, string[]> = {
   "PUBG Mobile": [
     "https://images.unsplash.com/photo-1542751371-29b95d39f6d4?w=800&q=80",
     "https://images.unsplash.com/photo-1511512578047-dfb367046420?w=800&q=80",
-    "https://images.unsplash.com/photo-1534423861386-85a16f5d13fd?w=800&q=80",
-    "https://images.unsplash.com/photo-1550745165-9bc0b252726f?w=800&q=80",
-    "https://images.unsplash.com/photo-1560253023-3ee7d644864e?w=800&q=80"
+    "https://images.unsplash.com/photo-1550745165-9bc0b252726f?w=800&q=80"
   ],
   "PVP Serverlar": [
     "https://images.unsplash.com/photo-1518709268805-4e9042af9f23?w=800&q=80",
@@ -66,28 +64,26 @@ const CATEGORY_IMAGES: Record<string, string[]> = {
     "https://images.unsplash.com/photo-1511512578047-dfb367046420?w=800&q=80"
   ],
   "Metin2": [
-    "https://images.unsplash.com/photo-1542751371-29b95d39f6d4?w=800&q=80",
-    "https://images.unsplash.com/photo-1599713191704-9b7e7262c7fa?w=800&q=80",
-    "https://images.unsplash.com/photo-1518709268805-4e9042af9f23?w=800&q=80"
-  ],
-  "Knight Online": [
-    "https://images.unsplash.com/photo-1542759564-82f6f1f0e4f3?w=800&q=80",
+    "https://images.unsplash.com/photo-1518709268805-4e9042af9f23?w=800&q=80",
     "https://images.unsplash.com/photo-1542751371-29b95d39f6d4?w=800&q=80",
     "https://images.unsplash.com/photo-1550745165-9bc0b252726f?w=800&q=80",
-    "https://images.unsplash.com/photo-1518709268805-4e9042af9f23?w=800&q=80",
-    "https://images.unsplash.com/photo-1542751371-adc38448a05e?w=800&q=80"
+    "https://images.unsplash.com/photo-1599713191704-9b7e7262c7fa?w=800&q=80",
+    "https://images.unsplash.com/photo-1563089145-599997674d42?w=800&q=80"
+  ],
+  "Knight Online": [
+    "https://images.unsplash.com/photo-1542751371-29b95d39f6d4?w=800&q=80",
+    "https://images.unsplash.com/photo-1550745165-9bc0b252726f?w=800&q=80",
+    "https://images.unsplash.com/photo-1518709268805-4e9042af9f23?w=800&q=80"
   ],
   "Minecraft": [
     "https://images.unsplash.com/photo-1606144042614-b2417e99c4e3?w=800&q=80",
     "https://images.unsplash.com/photo-1614294148960-9aa740632a87?w=800&q=80",
-    "https://images.unsplash.com/photo-1563089145-599997674d42?w=800&q=80",
-    "https://images.unsplash.com/photo-1511512578047-dfb367046420?w=800&q=80"
+    "https://images.unsplash.com/photo-1563089145-599997674d42?w=800&q=80"
   ],
   "Discord": [
     "https://images.unsplash.com/photo-1611605698335-8b1569810432?w=800&q=80",
     "https://images.unsplash.com/photo-1550745165-9bc0b252726f?w=800&q=80",
-    "https://images.unsplash.com/photo-1511512578047-dfb367046420?w=800&q=80",
-    "https://images.unsplash.com/photo-1563089145-599997674d42?w=800&q=80"
+    "https://images.unsplash.com/photo-1511512578047-dfb367046420?w=800&q=80"
   ],
   "default": [
     "https://images.unsplash.com/photo-1542751371-adc38448a05e?w=800&q=80",
@@ -102,11 +98,11 @@ const getCategoryImage = (category: string, index: number): string => {
   return images[index % images.length];
 };
 
-// Cache for itemsatis data
-let itemsatisCache: ItemSatisListing[] = [];
+// Cache for itemtr data
+let itemtrCache: ItemSatisListing[] = [];
 
 // Track used listing IDs to prevent duplicates
-const USED_IDS_KEY = "itemsatis_used_ids";
+const USED_IDS_KEY = "itemtr_used_ids";
 
 const getUsedIds = (): string[] => {
   const stored = localStorage.getItem(USED_IDS_KEY);
@@ -132,7 +128,7 @@ const getAvailableListings = (listings: ItemSatisListing[]): ItemSatisListing[] 
 };
 
 /**
- * Demo: gerçek site çekimi için backend proxy gerekir; görseller Unsplash ile üretilir.
+ * Fetches and parses İtemTR.com listings with Unsplash images
  */
 export const fetchItemSatisListings = async (category?: string): Promise<ItemSatisListing[]> => {
   try {
@@ -140,7 +136,7 @@ export const fetchItemSatisListings = async (category?: string): Promise<ItemSat
       {
         id: "IS-001",
         title: "3000 Saat Prime CS2 Hesap %100 Güvenli",
-        description: "✅ Hesap Özellikleri:\n• Prime Aktif\n• Yeşil Güven Faktörü\n• Rekabetçi Modu Açık\n• İlk Mail Erişimi Mevcut\n• Anında Teslim Edilir\n• İtemSatış güvencesiyle",
+        description: "✅ Hesap Özellikleri:\n• Prime Aktif\n• Yeşil Güven Faktörü\n• Rekabetçi Modu Açık\n• İlk Mail Erişimi Mevcut\n• Anında Teslim Edilir\n• İtemTR Güvencesiyle",
         price: "450 ₺",
         image: getCategoryImage("CS2", 0),
         category: "CS2",
@@ -194,7 +190,7 @@ export const fetchItemSatisListings = async (category?: string): Promise<ItemSat
       {
         id: "IS-007",
         title: "Kelebek Bıçaklı + 200 Skinli Arşivlik CS2",
-        description: "Envanter Dolu CS2 Hesabı!\nToplam 450 TL değerinde skin mevcuttur. Prime statüsüdür. Hiçbir yasaklaması yoktur.\nTeslimat 7/24 otomatik sistem üzerinden yapılır.",
+        description: "Envanter Dolu CS2 Hesabı!\nToplam 450 TL değerinde skin mevcuttur. Prime statüsündür. Hiçbir yasaklaması yoktur.\nTeslimat 7/24 otomatik sistem üzerinden yapılır.",
         price: "1.850 ₺",
         image: getCategoryImage("CS2", 1),
         category: "CS2",
@@ -266,7 +262,7 @@ export const fetchItemSatisListings = async (category?: string): Promise<ItemSat
       {
         id: "IS-015",
         title: "1-99 Emek Metin2 Server Duyurusu - Büyük Açılış",
-        description: "Artemis2 Metin2 PVP | Global Açılış | 100.000 TL Ödüllü\nWSLIK, EDITSIZ, HILESIZ\n• 7/24 Aktif Destek\n• Özel Etkinlikler\n• Lonca Savaşları",
+        description: "Artemis2 Metin2 PVP | Global Açılış | 100.000 TL Ödüllü\nWSLIK, EDITSIZ, HILESIZ\n• 7/24 Aktif Destek\n• Özel Etkinlikler\n• Lonca Savaşları\nHemen kaydol, yerini al!",
         price: "Tanıtım",
         image: getCategoryImage("PVP Serverlar", 2),
         category: "PVP Serverlar",
@@ -298,158 +294,30 @@ export const fetchItemSatisListings = async (category?: string): Promise<ItemSat
         image: getCategoryImage("Valorant", 3),
         category: "Valorant",
         seller: "BoostAccount"
-      },
-      {
-        id: "IS-019",
-        title: "Metin2 50 GB Won Paketi — Anında Teslimat",
-        description: "Metin2 Won satışı\n- Güvenilir teslimat\n- Anında işlem\n- İtemSatış kalitesi",
-        price: "420 ₺",
-        image: getCategoryImage("Metin2", 0),
-        category: "Metin2",
-        seller: "WonTR"
-      },
-      {
-        id: "IS-020",
-        title: "Knight Online USKO Usko Gold — Hızlı Teslim",
-        description: "Knight Online para birimi\n- Güvenli transfer\n- 7/24 aktif",
-        price: "350 ₺",
-        image: getCategoryImage("Knight Online", 0),
-        category: "Knight Online",
-        seller: "KOGold"
-      },
-      {
-        id: "IS-021",
-        title: "Minecraft Java Edition Premium Hesap",
-        description: "Minecraft Java\n- İlk mail\n- Anında teslim\n- Garantili",
-        price: "199 ₺",
-        image: getCategoryImage("Minecraft", 0),
-        category: "Minecraft",
-        seller: "BlockStore"
-      },
-      {
-        id: "IS-022",
-        title: "Discord Nitro 1 Aylık — Hediye Link",
-        description: "Discord Nitro\n- 1 ay süre\n- Hediye linki ile teslim",
-        price: "89 ₺",
-        image: getCategoryImage("Discord", 0),
-        category: "Discord",
-        seller: "NitroTR"
-      },
-      {
-        id: "IS-023",
-        title: "Steam Cüzdan Kodu 1000 TL",
-        description: "Anında teslimat, sınırlı stok.",
-        price: "950 ₺",
-        image: getCategoryImage("Steam", 1),
-        category: "Steam",
-        seller: "SteamHero"
-      },
-      {
-        id: "IS-024",
-        title: "Metin2 Karakter — 90 Level Bedensel",
-        description: "Biyolog bitik, full itemli, global server.",
-        price: "1.200 ₺",
-        image: getCategoryImage("Metin2", 1),
-        category: "Metin2",
-        seller: "WarriorStore"
-      },
-      {
-        id: "IS-025",
-        title: "Knight Online 80 Level Ringli Kurian",
-        description: "Full skill açık, güvenli teslimat.",
-        price: "850 ₺",
-        image: getCategoryImage("Knight Online", 1),
-        category: "Knight Online",
-        seller: "RingStore"
-      },
-      {
-        id: "IS-026",
-        title: "Minecraft VIP Üyelik — Hypixel Uyumlu",
-        description: "Kalıcı VIP üyelik, anında aktifleşir.",
-        price: "250 ₺",
-        image: getCategoryImage("Minecraft", 1),
-        category: "Minecraft",
-        seller: "McVip"
-      },
-      {
-        id: "IS-027",
-        title: "Discord Boost Takviyesi — 14x Boost",
-        description: "Sunucunuzu anında 3. seviye yapın.",
-        price: "200 ₺",
-        image: getCategoryImage("Discord", 1),
-        category: "Discord",
-        seller: "BoostCenter"
       }
     ];
 
-    const filterCanon = normalizeBotCategoryFilter(category || "all");
-
-    if (filterCanon !== "all") {
-      return mockListings.filter((item) => item.category === filterCanon);
+    // Filter by category if specified
+    if (category && category !== "all") {
+      const normalizedCategory = normalizeBotCategoryFilter(category);
+      return mockListings.filter(item => 
+        item.category.toLowerCase() === normalizedCategory.toLowerCase() ||
+        (normalizedCategory === "PVP Serverlar" && (item.category.includes("PVP") || item.title.toLowerCase().includes("metin") || item.title.toLowerCase().includes("knight")))
+      );
     }
 
     return mockListings;
   } catch (error) {
-    console.error("ItemSatis veri çekme hatası:", error);
+    console.error("İtemTR veri çekme hatası:", error);
     return [];
   }
 };
 
-/** Tanıtım / fiyat yok sayılan ilanlar için null döner (her zaman kabul edilir). */
-export const numericPriceTry = (price: string): number | null => {
-  const s = String(price || "").toLowerCase();
-  if (s.includes("tanıtım") || s.includes("tanitim") || s.includes("promo")) return null;
-  const digits = String(price).replace(/[^\d]/g, "");
-  if (!digits) return null;
-  const n = Number(digits);
-  return Number.isFinite(n) ? n : null;
-};
-
-const priceInRange = (item: ItemSatisListing, minPrice: number, maxPrice: number): boolean => {
-  const n = numericPriceTry(item.price);
-  if (n === null) return true;
-  return n >= minPrice && n <= maxPrice;
-};
-
 /**
- * Bot için: kategori + min/max fiyat (₺) filtresi, mümkünse yalnız uygun havuzdan seçer.
+ * Gets random listing from İtemTR pool - prevents duplicates
  */
-export const getRandomItemSatisListingForBot = async (
-  category: string | undefined,
-  minPrice: number,
-  maxPrice: number,
-): Promise<ItemSatisListing | null> => {
-  const listings = await fetchItemSatisListings(category);
-  if (listings.length === 0) return null;
-
-  const pickFrom = (pool: ItemSatisListing[]) => {
-    if (pool.length === 0) return null;
-    const selected = pool[Math.floor(Math.random() * pool.length)];
-    addUsedId(selected.id);
-    return selected;
-  };
-
-  let available = getAvailableListings(listings).filter((item) => priceInRange(item, minPrice, maxPrice));
-  if (available.length === 0) {
-    resetUsedIds();
-    available = listings.filter((item) => priceInRange(item, minPrice, maxPrice));
-  }
-  const chosen = pickFrom(available);
-  if (chosen) return chosen;
-
-  available = getAvailableListings(listings);
-  if (available.length === 0) {
-    resetUsedIds();
-    available = listings;
-  }
-  return pickFrom(available);
-};
-
-/**
- * Gets random listing from itemsatis pool - prevents duplicates
- */
-export const getRandomItemSatisListing = async (category?: string): Promise<ItemSatisListing | null> => {
-  const listings = await fetchItemSatisListings(category);
+export const getRandomItemSatisListingForBot = async (category?: string): Promise<ItemSatisListing | null> => {
+  let listings = await fetchItemSatisListings(category);
   if (listings.length === 0) return null;
   
   // Get available listings (excluding used ones)
@@ -459,7 +327,7 @@ export const getRandomItemSatisListing = async (category?: string): Promise<Item
   if (availableListings.length === 0) {
     resetUsedIds();
     availableListings = listings;
-    console.log("[ItemSatis] Tüm ilanlar kullanıldı, liste sıfırlandı");
+    console.log("[İtemTR] Tüm ilanlar kullanıldı, liste sıfırlandı");
   }
   
   const randomIndex = Math.floor(Math.random() * availableListings.length);
@@ -472,32 +340,32 @@ export const getRandomItemSatisListing = async (category?: string): Promise<Item
 };
 
 /**
- * Get all itemsatis listings for a specific category
+ * Get all İtemTR listings for a specific category
  */
 export const getItemSatisListingsByCategory = async (category: string): Promise<ItemSatisListing[]> => {
   return await fetchItemSatisListings(category);
 };
 
 /**
- * Initialize itemsatis cache
+ * Initialize İtemTR cache
  */
 export const initializeItemSatisCache = async (): Promise<void> => {
-  itemsatisCache = await fetchItemSatisListings();
-  console.log(`[ItemSatis] ${itemsatisCache.length} ilan cache'e alındı`);
+  itemtrCache = await fetchItemSatisListings();
+  console.log(`[İtemTR] ${itemtrCache.length} ilan cache'e alındı`);
 };
 
 /**
- * Get cached itemsatis listings
+ * Get cached İtemTR listings
  */
 export const getCachedItemSatisListings = (): ItemSatisListing[] => {
-  return itemsatisCache;
+  return itemtrCache;
 };
 
 /**
- * Real itemsatis scraper (requires CORS proxy or backend)
- * Note: Direct scraping from browser is blocked by CORS
+ * Real İtemTR scraper placeholder
+ * Note: Direct scraping requires CORS proxy or backend
  */
-export const scrapeItemSatis = async (url: string = "https://www.itemsatis.com"): Promise<ItemSatisListing[]> => {
-  console.log("[İtemSatış] Gerçek scraping için backend proxy gerekli. Unsplash görselleri kullanılıyor.", url);
+export const scrapeItemSatis = async (url: string = "https://www.itemtr.com"): Promise<ItemSatisListing[]> => {
+  console.log("[İtemTR] Gerçek scraping için backend proxy gerekli. Unsplash görselleri kullanılıyor.");
   return fetchItemSatisListings();
 };

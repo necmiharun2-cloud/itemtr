@@ -2,7 +2,7 @@ import { SITE_EMAIL_DOMAIN, SITE_NAME } from "./site-brand";
 import { type ListingSection } from "./marketplace";
 import { getCombinedPvpPool, type KocuceItem } from "./rss-service";
 import { ListingVisualDirector } from "./visual-director";
-import { getRandomItemSatisListingForBot, type ItemSatisListing } from "./itemsatis-scraper";
+import { getRandomItemSatisListingForBot, type ItemSatisListing } from "./itemtr-scraper";
 import { gameLabelForCanonicalCategory, normalizeBotCategoryFilter } from "./category-normalize";
 
 let kocucePvpCache: KocuceItem[] = (() => {
